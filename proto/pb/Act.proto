@@ -1,0 +1,26 @@
+syntax = "proto2";
+package cs;
+
+option go_package = "go-admin/bridge/csproto;csproto";
+
+message Act1Msg {
+    optional uint64 last_open_time = 1;
+    optional uint32 index = 2;
+    optional uint32 status = 3;
+    optional uint32 cur_month = 4;
+}
+message Act1DetailAttendance {
+    optional uint32 index = 1;
+    optional uint32 status = 2;
+    optional uint32 cur_month = 3;
+}
+message Act1ChangeDay {
+    optional uint32 index = 1;
+    optional uint32 status = 2;
+    optional uint32 cur_month = 3;
+}
+message Act1Overview {
+    optional uint32 index = 1;
+    optional uint32 status = 2;
+    optional uint32 cur_month = 3;
+}

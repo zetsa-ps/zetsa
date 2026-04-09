@@ -1,0 +1,11 @@
+.{
+    // Receive and send buffer sizes, in bytes.
+    .recv_buffer_size = 16384,
+    .send_buffer_size = 16384,
+
+    // TCP listen address. Can be overridden by `-a` option.
+    .listen_address = "127.0.0.1:20002",
+
+    // Default character group for newly created players.
+    .default_characters = .{ .METSA, .AGNES, .@"TUSHAN XIAOYU" },
+}

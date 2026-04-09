@@ -1,0 +1,21 @@
+.{
+    // Receive and send buffer sizes, in bytes.
+    .recv_buffer_size = 16384,
+    .send_buffer_size = 16384,
+
+    // Allowed period of time in between acceptance of connection and arrival of request.
+    .request_timeout_milliseconds = 1000,
+
+    // Time limit for client to close the connection. After that it's forcefully closed by server.
+    .drain_timeout_milliseconds = 500,
+
+    // TCP listen address. Can be overridden by `-a` option.
+    .listen_address = "127.0.0.1:20001",
+
+    // The outer address of `gamesv`. This will be communicated to clients.
+    // Can be overridden by `-g` option.
+    .gamesv_address = "127.0.0.1:20002",
+
+    // Hot update revision. Can be overridden by `-h` option.
+    .hot_revision = "1199241.1273906.1273906.1273906.1273906",
+}

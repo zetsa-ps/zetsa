@@ -1,0 +1,201 @@
+syntax = "proto2";
+package cs;
+
+option go_package = "GmServer/bridge/csproto;csproto";
+
+import "ExOptions.proto";
+import "KiboDuel.proto";
+import "CommonMsg.proto";
+import "Pet.proto";
+import "WorldMap.proto";
+import "Campaign.proto";
+
+enum NestCoopSiteStatus {
+    NCSS_NONE = 0;
+    NCSS_ACTIVE = 1;
+    NCSS_FINISH = 2;
+    NCSS_RUNNING = 3;
+}
+enum NestCoopLimitType {
+    NCLT_ALL = 0;
+    NCLT_CURRENCY = 1;
+    NCLT_CATCH = 2;
+    NCLT_SPECIAL = 3;
+}
+enum NestCoopStatus {
+    NCCS_NONE = 0;
+    NCCS_QUIT = 1;
+    NCCS_READY1 = 2;
+    NCCS_READY2 = 7;
+    NCCS_QUIT_TIMEOUT = 8;
+    NCCS_PRE_START = 9;
+    NCCS_START = 3;
+    NCCS_WIN = 4;
+    NCCS_LOSE = 5;
+}
+enum NestCoopFinReason {
+    NCFR_INVALID = 0;
+    NCFR_KILL_BOSS = 1;
+    NCFR_TIMEOUT = 2;
+    NCFR_KILL_CLAM = 3;
+}
+enum NestCoopSummonType {
+    NCST_NONE = 0;
+    NCST_PLAYER = 1;
+    NCST_NPC = 2;
+    NCST_CLAM = 3;
+    NCST_TOWER = 4;
+}
+enum NestCoopStarlinkStatus {
+    NCSLS_NONE = 0;
+    NCSLS_SUCC = 1;
+    NCSLS_FAIL = 2;
+    NCSLS_ABORT = 3;
+}
+enum NestCoopPlayerState {
+    NCPS_NONE = 0;
+    NCPS_LOAD = 1;
+    NCPS_READY = 2;
+    NCPS_QUIT = 3;
+}
+message NestCoopLevelHistory {
+    optional uint32 level_id = 1;
+    optional OnlineMode mode = 2;
+}
+message NestCoopSiteInfo {
+    optional uint32 site_id = 1;
+    optional uint32 site_level = 2;
+    optional uint32 status = 3;
+}
+message NestCoopSite {
+    repeated NestCoopSiteInfo sites = 1;
+}
+message NestLimitInfo {
+    optional uint32 currency_num = 1;
+    optional uint32 catch_pet_times = 2;
+    optional uint32 special_pet_times = 3;
+}
+message NestCoopStarCount {
+    repeated Info infos = 1;
+    message Info {
+        optional uint32 star = 1;
+        optional uint32 count = 2;
+    }
+}
+message NestCoopSiteData {
+    repeated NestCoopSiteInfo sites = 1;
+    optional bool full = 2;
+    optional NestLimitInfo limit_info = 3;
+    repeated uint32 team_heros = 4;
+    optional uint32 tair_guarantee = 5;
+}
+message NestCoopInfo {
+    optional NestCoopStatus status = 2;
+    optional NestCoopFinReason result = 1;
+    optional uint32 start_time = 3;
+    optional uint32 end_time = 4;
+    optional uint32 state_start_time = 5;
+    optional uint32 state_end_time = 6;
+}
+message NestCoopDamagRecord {
+    optional uint32 player_id = 1;
+    optional uint64 npc_id = 7;
+    optional uint64 uuid = 2;
+    optional uint32 damage = 4;
+    optional uint32 take_damage = 5;
+    optional uint32 heal = 6;
+}
+message NestCoopStat {
+    repeated NestCoopDamagRecord damage_record = 1;
+}
+message NestCoopSummonReq {
+    optional NestCoopSummonType type = 1;
+    optional uint64 npc_guid = 3;
+    optional Position pos = 4;
+    optional sint32 angle = 5;
+    optional uint64 source_pet_guid = 6;
+    optional uint64 replace_guid = 8;
+}
+message NestCoopSummonInfo {
+    optional uint64 guid = 1;
+    optional uint64 source_pet_guid = 6;
+}
+message NestCoopNpcInfo {
+    optional uint32 npc_id = 1;
+    optional uint64 npc_guid = 2;
+    optional PetbaseInfo catch_pet_info = 3;
+}
+message SCNestCoopCampaign {
+    repeated NestCoopSummonInfo summon_infos = 2;
+    repeated NestCoopStarlinkResult starlink_list = 3;
+    repeated NestCoopGroup group_list = 4;
+    repeated NestCoopCostInfo cost_list = 5;
+    repeated NestCoopCards cards_list = 6;
+    optional uint32 dungeon_id = 7;
+    optional uint32 dungeon_scene_id = 8;
+    optional uint32 nestcoop_site_id = 19;
+    optional uint32 line_id = 9;
+    optional NestCoopInfo nest_status = 11;
+    repeated NestCoopPlayerStateInfo player_states = 12;
+    repeated NestCoopNpcInfo npc_list = 13;
+    repeated NestCoopKibo kibo_list = 14;
+    optional NestCoopStat stats = 15;
+    repeated MapPlayerWorldBuff buff_list = 16;
+    repeated NestCoopNeutralAreaInfo area_list = 17;
+    repeated MatchTeamMemberData member_list = 18;
+}
+message NestCoopGroup {
+    optional uint32 player_id = 1;
+    optional uint64 npc_guid = 4;
+    optional KiboDuelAllPetAttrInfo info = 3;
+}
+message NestCoopKibo {
+    optional NestCoopSummonType type = 1;
+    optional uint32 player_id = 2;
+    optional uint64 npc_guid = 3;
+    optional uint32 camp = 5;
+    optional Position pos = 6;
+    optional sint32 angle = 7;
+    optional KiboDuelPetAttrInfo info = 4;
+}
+message SCNestCoopCtrl {
+    optional uint32 player = 1;
+}
+message NestCoopCostInfo {
+    optional uint32 player_id = 1;
+    optional uint64 npc_guid = 2;
+    optional uint32 cost_value = 3;
+    optional uint32 cost_value_max = 4;
+    optional uint32 cost_recover_speed = 5;
+    optional uint32 cost_update_time = 6;
+}
+message NestCoopFormationQueue {
+    optional uint32 player_id = 1;
+}
+message NestCoopCards {
+    optional uint32 player_id = 1;
+    optional uint64 npc_guid = 2;
+    repeated uint64 guids = 3;
+}
+message NestCoopStarlinkResult {
+    optional int32 player_id = 1;
+    optional NestCoopStarlinkStatus result = 2;
+    optional PetbaseInfo pet_info = 3;
+    optional uint32 pet_catch_item = 4;
+}
+message CSNestCoopStarlinkAbortReq {
+}
+message NestCoopPlayerStateInfo {
+    optional uint32 player_id = 1;
+    optional NestCoopPlayerState state = 2;
+}
+message NestCoopNeutralAreaSync {
+    repeated NestCoopNeutralAreaInfo area_list = 1;
+}
+message NestCoopNeutralAreaInfo {
+    optional uint32 area_id = 1;
+    optional uint32 blue_progress = 2;
+    optional uint32 camp = 3;
+    optional uint32 occupy_camp = 5;
+    optional uint64 update_time = 4;
+}

@@ -1,0 +1,7 @@
+.{
+    .name = .zetsa,
+    .version = "0.0.1",
+    .minimum_zig_version = "0.16.0-dev.3133+5ec8e45f3",
+    .paths = .{""},
+    .fingerprint = 0x14e7b335c20f1337,
+}

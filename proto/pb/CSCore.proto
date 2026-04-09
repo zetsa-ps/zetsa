@@ -1,0 +1,773 @@
+syntax = "proto2";
+package cs;
+
+option go_package = "GmServer/bridge/csproto;csproto";
+
+import "CommonMsg.proto";
+import "Core.proto";
+import "Pet.proto";
+
+enum PlatformType {
+    PFT_PC = 0;
+    PFT_Andriod = 1;
+    PFT_IOS = 2;
+}
+enum EnterGameType {
+    EGT_Normal = 1;
+    EGT_Reconnect = 2;
+    EGT_Refresh = 3;
+}
+enum FriendChangeType {
+    FriendChangeTypeNone = 0;
+    Add2FriendList = 1;
+    Add2BlackList = 2;
+    Add2ApplyList = 4;
+    DelFromFriendList = 8;
+    DelFromBlackList = 16;
+    DelFromApplyList = 32;
+    ClearApplyList = 64;
+}
+enum FriendOPType {
+    FOL_None = 0;
+    FOL_Friend = 1;
+    FOL_Apply = 2;
+    FOL_Ban = 3;
+}
+enum FriendOPVal {
+    FOT_None = 0;
+    FOT_Add = 1;
+    FOT_Del = 2;
+    FOT_AllAgree = 3;
+    FOT_AllDel = 4;
+}
+enum ChatType {
+    CT_PersonType = 0;
+    CT_GroupType = 1;
+    CT_WorldType = 2;
+}
+message CSHeartBeat {
+    optional CommonTime client_time = 1;
+    optional CommonTime server_time = 2;
+}
+message CSLogin {
+    optional bytes account = 1;
+    optional bytes pwd = 2;
+    optional uint32 platform = 3;
+    optional uint32 serverid = 4;
+    optional uint32 user_id = 5;
+    optional bytes lang = 6;
+    optional bytes session = 7;
+}
+message SCLogin {
+    optional uint32 pid = 1;
+    optional bytes token = 2;
+    optional uint32 ret = 3;
+    repeated SvrListInfo svrlists = 4;
+    optional bytes msg = 5;
+    repeated PlayerBan bans = 6;
+    optional SvrListInfo server = 7;
+    optional TeenInfo teen_info = 8;
+    optional bytes rc4key = 9;
+}
+message CSEnterGame {
+    optional string open_id = 1;
+    optional string token = 2;
+    optional string channel_code = 3;
+    optional string app_id = 4;
+    optional string server_token = 5;
+    optional bool reconnect = 6;
+    optional SwitchSvrInfo switch_info = 7;
+    optional uint32 platform = 8;
+    optional uint32 queue_time = 9;
+    optional string device_id = 10;
+    optional string model = 11;
+    optional string os_version = 12;
+    optional string network = 13;
+    optional string mac = 14;
+    optional uint32 tour_indicator = 15;
+    optional uint32 channel_id = 16;
+    optional string app_version = 17;
+    optional string ip = 18;
+    optional string platform_str = 19;
+    optional string game_id = 20;
+    optional uint32 device_type = 21;
+    optional bool new_role = 22;
+    optional uint32 ntf_seq = 23;
+    optional string init_trace_id = 24;
+    optional string previous_trace_id = 25;
+    optional string current_trace_id = 26;
+    optional uint32 device_grade = 27;
+    optional string job_name = 28;
+    optional uint32 zone_id = 29;
+    optional uint32 os_type = 30;
+    optional string build_pipe = 31;
+}
+message SCEnterGame {
+    optional PlayerData data = 1;
+    optional bool reconnect = 2;
+    optional int32 time_zone = 3;
+    optional fixed32 time = 4;
+    optional fixed32 time_msec = 5;
+    optional uint32 player_id = 6;
+    optional string server_token = 7;
+    optional bytes rc4_key = 8;
+    optional uint32 ntf_seq = 9;
+    optional uint32 req_seq = 10;
+    optional uint32 line_id = 11;
+    optional string server_id = 12;
+    optional string node_id = 13;
+}
+message SCEnterGameToken {
+    optional string server_param1 = 1;
+    optional bytes rc4_key = 2;
+    optional string server_param2 = 3;
+}
+message SCEnterGameCallbackStart {
+    optional bool reconnect = 1;
+    optional uint32 player_id = 2;
+    optional uint32 crc_rand_index = 3;
+    optional uint64 server_time = 4;
+    optional uint64 time_offset = 5;
+}
+message SCEnterGameType {
+    optional uint32 enter_type = 1;
+}
+message CSPlayerCustomData {
+    optional bytes name = 1;
+    optional WardrobeInfo wardrobe_info = 2;
+}
+message SCDesKeyNtf {
+    optional bytes encrptKey = 1;
+}
+message CSCreatePlayer {
+    optional bytes name = 1;
+    optional WardrobeInfo wardrobe_info = 2;
+}
+message SCCreatePlayer {
+    optional PlayerData data = 1;
+}
+message CSMoveSoulEssence {
+    optional uint64 hero_id = 1;
+    optional uint32 guid = 2;
+}
+message CSComposeSoulEssence {
+    optional uint32 guid = 1;
+    repeated uint32 costs = 2;
+    repeated SoulEssenceAddLvCost cost_items = 3;
+}
+message CSRisingStarSoulEssence {
+    optional uint32 guid = 1;
+    optional uint32 item_num = 2;
+    repeated uint32 guids = 3;
+}
+message CSSetLockSoulEssence {
+    optional uint32 guid = 1;
+    optional bool lock = 2;
+}
+message CSRankUpSoulEssence {
+    optional uint32 guid = 1;
+}
+message CSMoveWeaponApp {
+    optional uint64 hero_id = 1;
+    optional uint32 app_guid = 2;
+}
+message CSSetLockWeaponApp {
+    optional uint32 guid = 1;
+    optional bool lock = 2;
+}
+message SCGetAllEquipOrnament {
+    repeated Ornament ornaments = 1;
+    optional uint32 smelt_num = 2;
+}
+message SCUpdateOrnament {
+    repeated Ornament ornaments = 1;
+    repeated uint32 guid = 2;
+    optional uint32 smelt_num = 3;
+}
+message CSMoveOrnament {
+    optional uint64 hero_id = 1;
+    optional uint32 ornament_guid = 2;
+}
+message CSRemoveOrnament {
+    optional uint64 hero_id = 1;
+    optional uint32 type = 2;
+}
+message CSSetLockOrnament {
+    optional uint32 guid = 1;
+    optional bool lock = 2;
+}
+message CSEnhanceOrnament {
+    optional uint32 guid = 1;
+    optional uint32 op = 2;
+}
+message SCEnhanceOrnament {
+    optional bool suc = 1;
+}
+message CSQuickWear {
+    optional uint64 hero_guid = 1;
+    optional uint32 soulessence_guid = 2;
+    repeated uint32 ornament_guids = 3;
+}
+message CSUseItem {
+    optional uint32 itemid = 1;
+    optional uint32 num = 2;
+    repeated uint64 args = 3;
+}
+message SCUseItem {
+    optional uint32 ret = 1;
+}
+message CSPing {
+    optional uint32 ping = 4;
+    optional uint64 client_ts = 7;
+}
+message SCPing {
+    optional int32 time_zone = 1;
+    optional fixed32 time = 2;
+    optional fixed32 time_msec = 3;
+    optional uint64 client_ts = 4;
+}
+message SCQuestSync {
+    repeated QuestGroupInfo groups = 1;
+}
+message CSBuyShopItem {
+    optional uint32 slot_id = 1;
+    optional uint32 times = 2;
+    optional uint32 sign = 3;
+}
+message CSBuyShopItemRMB {
+    optional string product_id = 1;
+    optional uint32 times = 2;
+}
+message SCBuyShopItemRMB {
+    optional CSBuyShopItemRMB req = 1;
+    optional string order_sign = 2;
+    optional string order_no = 3;
+    optional string callback_url = 4;
+    optional int32 price = 5;
+}
+message CSListShopItems {
+    optional uint32 shop_id = 1;
+}
+message SCListShopItems {
+    optional ShopInfo infos = 1;
+}
+message SCBuyShopItem {
+    optional ShopItem info = 1;
+    optional Rewards rewards = 2;
+}
+message CSBuyShopItems {
+    repeated CSBuyShopItem items = 1;
+}
+message SCBuyShopItems {
+    repeated SCBuyShopItem items = 1;
+}
+message CSMailList {
+}
+message SCMailList {
+    repeated MailInfo mails = 1;
+}
+message SCMailSync {
+    repeated MailInfo mails = 1;
+    optional uint32 collect_count = 2;
+    repeated uint32 dels = 3;
+}
+message SCMailFetch {
+    repeated uint32 guids = 1;
+    optional Rewards rewards = 2;
+    optional uint32 errcode = 3;
+}
+message SCFriendIdList {
+    optional FriendAllId info = 1;
+}
+message FriendChangeOne {
+    optional FriendId friendItem = 1;
+    optional uint32 type = 2;
+}
+message SCFriendIncChange {
+    repeated FriendChangeOne datalist = 1;
+}
+message CSOpFriend {
+    optional uint32 optype = 1;
+    optional uint32 op = 2;
+    optional uint32 id = 3;
+}
+message CSChangeFriendRemark {
+    optional uint32 id = 1;
+    optional bytes remark = 2;
+}
+message CSChangeFriendRemarkRsp {
+    optional uint32 id = 1;
+    optional bytes remark = 2;
+}
+message CSReportOnPlayer {
+    optional uint32 pid = 1;
+    optional bytes name = 2;
+    optional string text = 3;
+    optional string reason = 4;
+}
+message SCDelChatShield {
+    optional uint32 del = 1;
+}
+message SCChatShieldInfo {
+    repeated uint32 infos = 1;
+}
+message CSAddChatShield {
+    optional uint32 id = 1;
+}
+message CSDelChatShield {
+    optional uint32 id = 1;
+}
+message SCChatListInfo {
+    repeated FriendChat info = 1;
+}
+message SCChatMsgCnt {
+    repeated MsgIDCnt msg_list = 1;
+    message MsgIDCnt {
+        optional uint32 id = 1;
+        optional uint32 cnt = 2;
+    }
+}
+message ChatTarget {
+    optional uint64 tid = 1;
+    optional uint32 chat_type = 2;
+    optional bool shield = 3;
+}
+message SCChatInfoChange {
+    optional ChatTarget target = 2;
+    optional ChatInfo chat = 3;
+}
+message CSAddChat {
+    optional ChatTarget target = 1;
+    optional bytes msg = 2;
+    optional uint32 type = 3;
+    optional uint32 time = 4;
+    optional bytes extra_info = 5;
+}
+message CSDelFriendChat {
+    optional uint32 id = 1;
+}
+message CSQueryChatInfoReq {
+    optional uint32 id = 1;
+}
+message CSReadFriendChat {
+    optional uint32 id = 1;
+    optional uint32 order = 2;
+}
+message CSCreateFriendChat {
+    optional uint32 id = 1;
+}
+message SCCreateFriendChat {
+    optional uint32 upgrade = 1;
+}
+message CSPlayerSimpleListInfo {
+    optional uint32 type = 1;
+}
+message CSPlayerMiniListInfo {
+    optional uint32 type = 1;
+}
+message CSQueryPlayerInfo {
+    optional uint32 id = 1;
+}
+message SCQueryPlayerInfo {
+    optional PlayerBasicInfo info = 1;
+}
+message CSChangeName {
+    optional bytes name = 1;
+    optional uint32 cr = 2;
+    optional uint32 check = 3;
+}
+message CSChangeTitle {
+    optional uint32 type = 1;
+    optional uint32 id = 2;
+}
+message CSChangeSign {
+    optional bytes sign = 1;
+}
+message ShowHeroInfo {
+    optional uint64 hero_id = 1;
+    optional uint32 pos = 2;
+}
+message CSChangeShowHero {
+    repeated ShowHeroInfo hero = 1;
+}
+message ShowPetInfo {
+    optional uint64 pet_guid = 1;
+    optional uint32 pos = 2;
+}
+message CSChangeShowPet {
+    repeated ShowPetInfo pet = 1;
+}
+message CSBuyPayItem {
+    optional int32 id = 1;
+    optional bytes channel = 2;
+}
+message SCPayNotfiy {
+    repeated OrderInfo orders = 1;
+    optional ShopItem info = 2;
+    optional Rewards reward = 3;
+}
+message SCInQueue {
+    optional uint32 queue_pos = 1;
+    optional float queue_speed = 2;
+}
+message SCMainBuildInfo {
+    repeated MainBuild infos = 1;
+}
+message SCBuildInfo {
+    repeated BuildBase infos = 1;
+}
+message SCProsperityInfo {
+    repeated ProsperityReward reward = 1;
+}
+message CSUint32 {
+    optional uint32 u32 = 1;
+}
+message CSRepeatedUint32 {
+    repeated uint32 u32s = 1;
+}
+message CSUint64 {
+    optional uint64 u64 = 1;
+}
+message CSLvUpHero {
+    optional uint64 hero_id = 1;
+    repeated SimpleItem items = 2;
+}
+message CSHeroRankReward {
+    optional uint64 hero_id = 1;
+    optional uint32 rank_id = 2;
+}
+message CSLvUpSkill {
+    optional uint64 hero_id = 1;
+    optional uint32 skill_id = 2;
+}
+message CSGuideUpdate {
+    optional uint32 id = 1;
+    optional uint32 sub_id = 2;
+}
+message SCGuideUpdate {
+    optional uint32 id = 1;
+    optional uint32 sub_id = 2;
+    optional bool complete = 3;
+}
+message SCRedPointSync {
+    optional RedPointInfos infos = 1;
+}
+message CSRedPointSetReq {
+    optional uint32 id = 1;
+    optional uint32 sub_id = 2;
+    optional bool flag = 3;
+}
+message SCStorySync {
+    optional StoryInfos infos = 1;
+}
+message CSSwitchGroup {
+    optional uint32 type = 1;
+    optional uint32 group_id = 2;
+}
+message CSSwitchGroupControl {
+    optional uint32 type = 1;
+    optional uint64 control = 2;
+    optional Position pos = 3;
+    optional int32 angle = 4;
+    optional int32 switch_type = 5;
+}
+message CSChangeGroupIndex {
+    optional uint32 type = 1;
+    optional Group group = 2;
+}
+message CSChangeGroupName {
+    optional uint32 type = 1;
+    optional uint32 group_id = 2;
+    optional bytes name = 3;
+}
+message CSQuickChangeGroup {
+    optional uint32 type = 1;
+    optional uint32 id = 2;
+    repeated CSWearPet infos = 3;
+}
+message CSTrialGroupChange {
+    optional bool open = 1;
+    optional bool force = 2;
+    repeated trials trial_heros = 3;
+    repeated trials trial_pets = 4;
+    optional trials trial_control = 5;
+    message trials {
+        optional int32 pos = 1;
+        optional uint32 id = 2;
+    }
+}
+message CSTrialDatas {
+    repeated HeroItemInfo trial_heros = 1;
+    repeated PetbaseInfo trial_pets = 2;
+}
+message SCAchievementSync {
+    repeated AchievementGroup groups = 1;
+    repeated Achievement achievements = 2;
+    optional uint32 last_achievement_award_point = 3;
+}
+message SCAchievementFinishNotice {
+    optional uint32 id = 1;
+}
+message CSClientBehaviourRecord {
+    optional uint32 key = 1;
+    repeated uint32 args = 4;
+}
+message SCCharDataSync {
+    optional uint32 hero_id = 1;
+    optional uint32 type_id = 2;
+    repeated uint32 record_id = 3;
+}
+message CSCharDataGet {
+    optional uint64 hero_id = 1;
+}
+message CharDataSingle {
+    optional uint32 type_id = 1;
+    repeated uint32 record_id = 2;
+}
+message SCCharDataRsp {
+    optional uint32 hero_id = 1;
+    repeated CharDataSingle infos = 2;
+}
+message SCCharDataAll {
+    repeated SCCharDataRsp heros_char_data = 1;
+}
+message CSGetComplexReq {
+    optional uint32 friend_pid = 1;
+}
+message SCGetComplexRsp {
+    optional ComplexShowInfo complex_info = 1;
+}
+message SCFishSync {
+    repeated FishHandbook handbooks = 1;
+    optional uint32 cur_rod = 2;
+    optional uint32 cur_bait = 3;
+    repeated FishEventHandbook event_handbooks = 4;
+}
+message SCFishPondSync {
+    repeated FishPond ponds = 1;
+}
+message CSFishSet {
+    optional uint32 bait_id = 1;
+    optional uint32 rod_id = 2;
+}
+message CSFishFinish {
+    optional bool success = 1;
+}
+message SCFishFinish {
+    optional uint32 fish_id = 1;
+    optional uint32 fish_weight = 2;
+    optional uint32 fish_status = 3;
+    optional Rewards rewards = 4;
+    optional uint32 event_id = 5;
+}
+message CSGetActiveReward {
+    optional uint32 reward_type = 1;
+    optional bool is_all = 2;
+    optional uint32 reward_id = 3;
+}
+message SCActiveTaskComplete {
+    repeated PlayerActiveTaskInfo task_infos = 1;
+}
+message CSStarGiftEquip {
+    repeated uint32 star_ids = 1;
+    optional uint64 hero_id = 2;
+}
+message SCStarGiftDataSync {
+    repeated SimpleItem star_gifts = 1;
+    repeated uint32 del_items = 2;
+}
+message CSWearPet {
+    optional uint64 pet_guid = 1;
+    optional uint64 hero_guid = 2;
+}
+message SCUnLockSync {
+    repeated uint32 unlock_id = 1;
+}
+message CSActGetDetail {
+    optional uint32 act_id = 1;
+}
+message CSPamiMailChoose {
+    optional uint32 text_id = 1;
+    optional uint32 reply_id = 2;
+}
+message PamiMailLetterContent {
+    optional uint32 mail_id = 1;
+    optional uint64 hero_id = 2;
+    repeated LetterReply reply = 3;
+    optional bool latest_read = 4;
+    optional uint32 timestamp = 5;
+    repeated uint32 reward = 6;
+    repeated ExtraInfo args = 7;
+    message LetterReply {
+        optional uint32 text_id = 1;
+        optional uint32 record = 2;
+        optional uint32 timestamp = 3;
+    }
+}
+message PamiMailTab {
+    optional uint32 mail_type = 1;
+    repeated PamiMailLetterContent contents = 2;
+}
+message SCPamiMailSync {
+    repeated PamiMailTab mail_tab = 1;
+}
+message CSExchangeItemReq {
+    optional uint32 item_id = 1;
+    optional uint32 item_type = 2;
+    optional uint32 item_num = 3;
+    repeated uint32 args = 4;
+}
+message SCAnnounceSync {
+    repeated AnnounceNotice notics = 1;
+    repeated AnnounceNoticeScrolling scrolling = 2;
+}
+message SCPaomaLightSync {
+    repeated PaomaLightNotice notics = 1;
+}
+message CSChangePlayerStatus {
+    optional uint32 status = 1;
+    optional uint64 arg = 2;
+}
+message CSCookItemCollect {
+    optional uint32 item_id = 1;
+    optional bool collect = 2;
+}
+message CSSetStory {
+    optional uint32 story_id = 1;
+    optional bool is_skip = 2;
+    optional uint32 story_type = 3;
+    optional uint32 param = 4;
+    optional uint32 tag = 5;
+}
+message CSChangePhotoGraphTempletName {
+    optional uint32 id = 1;
+    optional bytes name = 2;
+}
+message AllPhotoGraphTempletInfo {
+    repeated PhotoGraphTempletInfo infos = 1;
+    repeated uint32 dels = 2;
+}
+message AllChatEmojiInfo {
+    repeated ChatEmojiInfo bags = 1;
+    repeated uint32 collects = 2;
+    repeated uint32 collect_dels = 3;
+}
+message CSGetQuestionLink {
+    optional string link = 1;
+}
+message AllNoviceTaskInfo {
+    repeated NoviceTaskGroupInfo groups = 1;
+}
+message AllRechargeOrderInfo {
+    repeated RechargeOrderInfo orders = 1;
+}
+message ProtoNullRsp {
+}
+message AllCollectToolInfo {
+    repeated CollectToolItem bags = 1;
+    repeated uint32 dels = 2;
+}
+message CSHeroRuneEquip {
+    optional uint64 hero_id = 1;
+    repeated uint32 slot_ids = 2;
+}
+message CSHeroRuneLevelUp {
+    optional uint64 hero_id = 1;
+}
+message RuneAttrChange {
+    optional uint32 attr_id = 1;
+    optional uint32 attr_val = 2;
+}
+message RuneSkillLevelChange {
+    optional uint32 skill_id = 1;
+    optional uint32 add_level = 2;
+}
+message SCHeroRuneAttrChange {
+    repeated RuneAttrChange atrrs = 1;
+    repeated RuneSkillLevelChange skills = 2;
+}
+message SCProtoGMSystemCloseSync {
+    repeated GameSystemInfo syslist = 1;
+}
+message CSOperateSnackBag {
+    optional uint32 source_bag = 1;
+    optional uint32 target_bag = 2;
+    optional uint32 operate_type = 3;
+    optional uint32 item_id = 4;
+    optional uint32 item_num = 5;
+    optional uint32 source_slot = 6;
+    optional uint32 target_slot = 7;
+}
+message CSSetSnackBagNum {
+    repeated SnackBagNum info = 1;
+    message SnackBagNum {
+        optional uint32 bag_type = 1;
+        optional uint32 num = 2;
+    }
+}
+message AllStandPlatesBagInfo {
+    repeated StandPlatesBagInfo bags = 1;
+}
+message CSComposeRune {
+    optional uint32 item_id = 1;
+    optional uint32 num = 2;
+    optional bool equip = 3;
+}
+message SCComposeRuneRsp {
+    optional Rewards rewards = 1;
+    optional bool equip = 2;
+}
+message CSSendHeroGift {
+    optional uint32 item_id = 1;
+    optional uint32 num = 2;
+    optional uint32 heroId = 3;
+    optional uint32 item_type = 4;
+}
+message SCSendHeroGift {
+    optional uint32 item_id = 1;
+    optional uint32 hero_id = 2;
+    optional uint32 item_type = 3;
+    optional uint32 num = 4;
+}
+message CSFriendRecommend {
+}
+message SCFriendRecommend {
+    repeated PlayerBasicInfo player_infos = 1;
+}
+message CSChatSyncNew {
+    repeated uint32 pids = 1;
+}
+message SCChatSyncNew {
+    repeated FriendChat chat_infos = 1;
+}
+message SCChatRoomSync {
+    optional uint32 chat_type = 1;
+    optional uint64 sysId = 2;
+}
+message CSChatWorldJoin {
+    optional uint64 sysId = 2;
+}
+message SCChatWroldJoin {
+}
+message CSChatRoomNum {
+    optional uint32 chat_type = 1;
+}
+message SCChatRoomNum {
+    optional uint32 chat_type = 1;
+    optional uint32 count = 2;
+}
+message CSFriendShield {
+    optional uint32 friend_id = 1;
+    optional bool bShield = 2;
+}
+message SCFriendShield {
+    optional uint32 friend_id = 1;
+    optional bool bShield = 2;
+}
+message SCFriendShieldNtf {
+    optional uint32 friend_id = 1;
+    optional bool bShield = 2;
+}
+message CSChangeSceneShowcase {
+    optional SceneShowcase data = 1;
+}

@@ -1,0 +1,750 @@
+syntax = "proto2";
+package cs;
+
+option go_package = "GmServer/bridge/csproto;csproto";
+
+import "ExOptions.proto";
+import "CommonMsg.proto";
+import "Pet.proto";
+
+enum WorldMapBuildStatusType {
+    WMBST_NORMAL = 1;
+    WMBST_BUILDING = 2;
+    WMBST_UPGRADING = 3;
+    WMBST_PRODUCT = 4;
+}
+enum WorldMapBuildType {
+    WMBT_HOUSE = 1;
+    WMBT_PRODUCT = 2;
+    WMBT_DECORATE = 3;
+    WMBT_CANTEEN = 4;
+    WMBT_DORM = 5;
+    WMBT_PET_CANTEEN = 6;
+    WMBT_PRO_BUILD = 7;
+    WMBT_PRO_ORNAMENT = 8;
+    WMBT_PRO_COMMON = 9;
+    WMBT_COOK = 10;
+    WMBT_HATCH = 12;
+    WMBT_MANAGE = 13;
+    WMBT_STOREHOUSE = 14;
+    WMBT_FIELD_NEW = 15;
+    WMBT_FIELD_HOUSE = 16;
+    WMBT_PARTICLE_STORE = 17;
+    WMBT_HOME_ORDER = 18;
+    WMBT_WAR_GOD_TOWER = 23;
+    WMBT_RANCH = 53;
+    WMBT_FIELD = 54;
+    WMBT_COLLECT = 55;
+}
+enum ProductType {
+    PT_Unkown2 = 2;
+    PT_Cook = 3;
+    PT_Unkown6 = 6;
+    PT_Unkown7 = 7;
+}
+enum FreeType {
+    FT_PASSIVE = 1;
+    FT_ACTIVE = 2;
+}
+enum WorldMapFieldStatusType {
+    WMFST_CLOSE = 1;
+    WMFST_OPEN = 2;
+    WMFST_CROP = 3;
+}
+enum WorldMapCropStatusType {
+    WMCST_SEED = 0;
+    WMCST_GROW = 1;
+    WMCST_PRE_HARVEST = 2;
+    WMCST_HARVEST = 3;
+}
+enum HomeResidentSpecialWorkType {
+    HRSW_SCIENCE = 1;
+    HRSW_MAX = 2;
+}
+enum PetStationedWorkStatusType {
+    PSWST_NONE = 0;
+    PSWST_HOME_REST = 1;
+    PSWST_HOME_WORK = 2;
+    PSWST_WILD_REST = 3;
+    PSWST_WILD_WORK = 4;
+    PSWST_FIELD_WORK = 5;
+    PSWST_RANCH_WORK = 6;
+    PSWST_CENTER = 7;
+}
+enum TechSyncType {
+    TST_EXP = 1;
+}
+enum StationEventType {
+    SET_COLLECT = 1;
+    SET_HOME_PRODUCT = 2;
+    SET_HOME_FIELD = 3;
+    SET_HOME_RANCH = 4;
+}
+enum HomeShortcutBarType {
+    HSBT_BUILD = 1;
+    HSBT_CROP = 2;
+}
+enum HomePetAutoWorkType {
+    HPAWT_WATER = 1;
+    HPAWT_HARVEST = 2;
+    HPAWT_PLANT = 3;
+    HRANCH_WORK = 4;
+    HRANCH_HARVEST = 5;
+}
+enum HomeOperateAutoWorkType {
+    HOAWT_ADD = 1;
+    HOAWT_DEL = 2;
+}
+enum HomeBuffValType {
+    HBVT_NUM = 1;
+    HBVT_RATIO = 2;
+    HBVT_TIME = 3;
+    HBVT_CATCH_PET = 4;
+    HBVT_BATTLE_ATTR = 5;
+}
+enum HomeBuffValCalcType {
+    HBVCT_Uncalc = 0;
+    HBVCT_OUTVAL = 2;
+    HBVCT_ADD = 3;
+    HBVCT_MAX = 4;
+    HBVCT_ADDMUL = 5;
+    HBVCT_SUBMUL = 6;
+    HBVCT_MIN = 7;
+}
+enum HomeCropStateType {
+    HCST_NONE = 0;
+    HCST_SEED = 1;
+    HCST_GROW1 = 2;
+    HCST_GROW2 = 3;
+    HCST_HARVEST = 4;
+}
+enum HomeHubTabType {
+    HHTT_PRODUCT = 1;
+    HHTT_AUTO_WORK = 2;
+    HHTT_RANCH = 3;
+    HHTT_COLLECT = 4;
+}
+enum PetEggHatchState {
+    PEHS_NORMAL = 0;
+    PEHS_IN_HATCH_QUEUE = 1;
+    PEHS_START_HATCH = 2;
+    PEHS_FINISH_HATCH = 3;
+}
+enum EUpDown {
+    EUD_None = 0;
+    EUD_Up = 1;
+    EUD_Down = 2;
+}
+enum EOrderType {
+    EOT_None = 0;
+    EOT_Plot = 1;
+    EOT_Fixed = 2;
+    EOT_Middle = 3;
+    EOT_Hight = 4;
+}
+enum EOrderState {
+    EOS_None = 0;
+    EOS_Accept = 1;
+    EOS_Complete = 2;
+}
+message CSQuickAddSeed {
+    repeated CommonItem items = 1;
+    optional uint32 build_guid = 2;
+}
+message HomeBuildLocate {
+    optional uint32 block_id = 1;
+    optional uint32 anchor = 2;
+    optional uint32 direction = 3;
+    optional Position3f position = 4;
+    optional Position3f rotation = 5;
+    optional Position3f scale = 6;
+    optional Position3f center = 7;
+}
+message HomeBuildProduct {
+    optional uint32 product_id = 1;
+    optional uint32 start_time = 2;
+    optional uint32 total_count = 3;
+    optional uint32 finish_count = 4;
+    optional uint32 product_guid = 5;
+    optional uint32 finish_time = 6;
+    optional uint32 state = 7;
+    optional uint32 total_finish_time = 8;
+    optional uint64 pet_guid = 9;
+}
+message SpecialProductInfos {
+    optional uint32 product_guid = 1;
+    optional uint32 extra_guid = 2;
+    repeated CommonItem items = 3;
+    optional uint32 extra_type = 4;
+}
+message HomeBuildPetCanteen {
+    repeated PetEatInfo pets = 1;
+    optional uint32 food_value = 2;
+    repeated CommonItem foods = 3;
+}
+message HatchInfo {
+    optional uint32 egg_guid = 1;
+    optional uint32 start_time = 2;
+    optional uint32 finish_time = 3;
+    optional uint32 state = 4;
+}
+message HomeBuildHatchInfo {
+    repeated HatchInfo hatch_infos = 1;
+}
+message ExtraProduct {
+    optional uint32 guid = 1;
+    repeated CommonItem item = 2;
+}
+message WorldMapHomeBuild {
+    optional uint32 guid = 1;
+    optional uint32 build_id = 2;
+    optional HomeBuildLocate locate = 3;
+    optional uint32 status = 4;
+    optional uint32 start_time = 5;
+    repeated HomeBuildProduct product = 6;
+    optional uint64 station_pet_guid = 9;
+    repeated ExtraProduct extra_product = 10;
+    optional HomeBuildPetCanteen pet_canteen = 11;
+    optional HomeBuildHatchInfo hatch = 12;
+    repeated SpecialProductInfos specials = 13;
+    optional HomePetAutoWorkInfo auto_info = 14;
+    optional CollectBuildData collect_build_data = 15;
+    optional HomeRanchPetWorkInfo ranch_pet_work_info = 16;
+    repeated techExpInfo tech_exp = 17;
+    optional WorldMapBuildCrop crop_info = 18;
+    optional HomeDormInfo dorm = 19;
+    optional uint32 build_type = 20;
+}
+message FieldKey {
+    optional uint32 field_id = 1;
+    optional uint32 block_id = 2;
+}
+message buildPosInfo {
+    optional uint32 pos = 1;
+    optional uint32 build_guid = 2;
+}
+message buildsInfo {
+    optional uint32 build_type = 1;
+    repeated buildPosInfo builds = 2;
+}
+message HomeHub {
+    repeated buildsInfo pos_infos = 1;
+    repeated uint64 station_pets = 2;
+}
+message WorldMapBuildCrop {
+    optional uint32 seed_id = 1;
+    optional uint32 state = 2;
+    optional uint32 state_start_time = 3;
+    optional uint32 water_num = 4;
+    optional uint32 water_max = 5;
+    optional uint32 state_finish_time = 6;
+    optional uint64 water_pet = 7;
+    optional bool is_player_water = 8;
+    optional uint32 grow_cost_time = 9;
+    optional uint32 pre_cost_time = 10;
+    optional bool is_fixed = 11;
+}
+message WorldMapHome {
+}
+message Build {
+    optional uint32 build_id = 1;
+    optional uint32 total_num = 2;
+    optional uint32 used_num = 3;
+    optional bool unlock = 4;
+}
+message CSEnterHome {
+    optional uint32 creator_id = 1;
+}
+message WorldBuffBuild {
+    optional uint32 guid = 1;
+    optional uint32 build_id = 2;
+}
+message HomeTree {
+    optional uint32 stage = 1;
+    optional uint32 process = 2;
+    optional bool is_new = 3;
+    repeated uint32 sub_process = 4;
+}
+message HomeFormulaInfo {
+    optional uint32 product_id = 1;
+    optional uint32 craft_count = 2;
+}
+message HomeMaterialWishlist {
+    optional uint32 uid = 1;
+    optional uint32 product_id = 2;
+    repeated uint32 selects = 3;
+    optional bool trace = 4;
+    optional uint32 count = 5;
+}
+message RecentProductInfo {
+    optional uint32 product_id = 1;
+    optional uint32 build_id = 2;
+}
+message HomeRecentProduction {
+    optional uint32 type = 1;
+    repeated RecentProductInfo products = 2;
+}
+message SCHomeSync {
+    optional uint32 home_lv = 1;
+    optional bytes home_name = 2;
+    repeated Build builds = 3;
+    repeated uint32 del_builds = 4;
+    repeated WorldMapHomeBuild home_builds = 5;
+    repeated ShortcutBar shortcut_bars = 6;
+    repeated TechnologyTypeInfo technology = 7;
+    repeated WorldBuffBuild buff_builds = 8;
+    optional HomeTree tree = 9;
+    repeated HomeFormulaInfo formula = 10;
+    optional HomeHub home_hub = 11;
+    repeated HomeMaterialWishlist wishlist = 12;
+    repeated uint32 del_wishlist = 13;
+    optional HomeDormData dorm = 14;
+    repeated HomeRecentProduction recent_products = 15;
+}
+message ShortcutBar {
+    optional uint32 type = 1;
+    repeated int32 item_id = 2;
+}
+message CSShortcutBarChange {
+    repeated ShortcutBar shortcut_bar = 1;
+}
+message CSBuildCreate {
+    optional uint32 guid = 1;
+    optional uint32 build_id = 2;
+    optional HomeBuildLocate locate = 3;
+    optional bool from_hub = 4;
+}
+message CSBuildCreateFinish {
+    optional uint32 guid = 1;
+}
+message CSBuildLocate {
+    optional uint32 guid = 1;
+    optional uint32 build_id = 2;
+    optional HomeBuildLocate locate = 3;
+}
+message CSBuildUnlocate {
+    optional uint32 guid = 1;
+}
+message UnlockVal {
+    optional uint32 unlock_id = 1;
+    optional uint32 unlock_val = 2;
+}
+message UnlockScience {
+    optional uint32 sci_id = 1;
+    optional uint32 state = 2;
+    repeated UnlockVal unlock_val = 3;
+}
+message HomeScienceInfos {
+    repeated UnlockScience unlock_science = 1;
+    optional uint32 research_id = 2;
+    optional uint32 finish_time = 3;
+}
+message Technology {
+    optional uint32 subType = 1;
+    optional uint32 subLevel = 2;
+    optional uint32 lastTime = 3;
+    optional uint32 maxSubLevel = 4;
+}
+message TechnologyTypeBase {
+    optional uint32 type = 1;
+    optional uint32 level = 2;
+    optional uint64 exp = 3;
+    optional uint64 totalExp = 4;
+    optional uint32 point = 5;
+    optional uint32 totalPoint = 6;
+    optional uint32 dailyExp = 7;
+    optional uint32 dailyExpTime = 8;
+}
+message TechnologyTypeInfo {
+    optional TechnologyTypeBase base = 1;
+    repeated Technology list = 2;
+    optional uint32 type = 3;
+}
+message TechnologyTypeList {
+    repeated TechnologyTypeInfo list = 1;
+}
+message CSProductStart {
+    optional uint32 build_guid = 1;
+    optional uint32 product_id = 2;
+    optional uint32 count = 3;
+    repeated uint32 select_material = 4;
+}
+message CSProductOrnament {
+    optional uint32 build_guid = 1;
+    optional uint32 product_id = 2;
+    optional uint32 ornament_guid = 3;
+}
+message CSCookRequest {
+    optional uint32 build_guid = 1;
+    optional uint32 cook_id = 2;
+    repeated SimpleItem cook_material = 3;
+    optional uint32 cook_count = 4;
+}
+message SCProductFinish {
+    optional WorldMapHomeBuild build = 1;
+    optional Rewards reward = 2;
+    optional Rewards special_reward = 3;
+}
+message CSProductsOps {
+    optional uint32 guid = 1;
+    repeated uint32 product_guids = 2;
+    optional bool is_all = 3;
+}
+message CSCropPlant {
+    optional uint32 seed_id = 1;
+    optional uint32 build_guid = 2;
+}
+message CSCropPlantReq {
+    repeated CSCropPlant plant_info = 1;
+    optional bool is_pet = 2;
+}
+message CSOperateCanteenItem {
+    optional uint32 counts = 1;
+    optional uint32 guid = 2;
+}
+message CollectProductInfo {
+    optional uint32 product_id = 1;
+    optional uint32 collect_num = 2;
+    optional uint32 last_collect_time = 3;
+    optional uint32 next_collect_time = 4;
+}
+message CollectItem {
+    optional uint32 item_id = 1;
+    optional uint32 item_type = 2;
+    optional uint32 item_num = 3;
+    optional uint32 source_product_id = 4;
+}
+message CollectBuildData {
+    optional uint32 guid = 1;
+    optional uint32 build_id = 2;
+    repeated CollectProductInfo product_infos = 3;
+    optional uint32 start_time = 4;
+    optional uint64 pet_guid = 5;
+    repeated CollectItem items = 7;
+}
+message CSCollectStart {
+    optional uint32 guid = 1;
+    optional uint32 plan_time = 2;
+}
+message CSCollectGetReward {
+    repeated uint32 guid = 1;
+    optional uint32 source_build = 2;
+}
+message CSFieldOperate {
+    optional HomeBuildLocate locate = 1;
+}
+message SCFieldCloseReq {
+    optional uint32 field_id = 1;
+}
+message CSWaterField {
+    optional uint32 build_guid = 1;
+    optional bool is_pet = 2;
+}
+message CSPetStationed {
+    optional uint64 pet_guid = 1;
+    optional uint32 build_type = 2;
+    optional uint32 build_guid = 3;
+    optional uint32 source_build = 4;
+    optional uint32 sub_work_type = 5;
+    optional bool out_hub = 6;
+    optional uint64 replace_pet = 7;
+}
+message AutoPetInfo {
+    optional uint64 pet_guid = 1;
+    optional uint32 last_work_time = 2;
+}
+message techExpInfo {
+    optional uint32 type = 1;
+    optional uint32 exp = 2;
+}
+message HomePetAutoWorkInfo {
+    optional uint64 plant_pet = 1;
+    optional uint64 water_pet = 2;
+    optional uint64 harvest_pet = 3;
+    repeated CommonItem seeds = 4;
+    repeated CommonItem crops = 5;
+    optional uint32 block_id = 6;
+    optional uint32 water_target = 7;
+}
+message CSOperateSeedStorehouse {
+    optional uint32 operate_type = 1;
+    optional CommonItem seed = 2;
+    optional uint32 build_guid = 3;
+}
+message CSChoseAutoWorkPet {
+    optional uint64 pet_guid = 1;
+    optional uint32 work_type = 2;
+    optional uint32 operate_type = 3;
+    optional uint32 build_guid = 4;
+    optional bool out_hub = 5;
+    optional uint64 replace_pet = 6;
+}
+message CSExchangeSeedLoc {
+    optional uint32 build_guid = 1;
+    optional uint32 guid = 2;
+    optional uint32 target_guid = 3;
+}
+message CSHomeHarvest {
+    optional uint32 build_guid = 1;
+    optional bool is_pet = 2;
+}
+message HomeRanchDropReward {
+    optional uint32 guid = 1;
+    optional CommonItem item = 2;
+    optional uint64 pet_guid = 3;
+    optional uint32 drop_id = 4;
+}
+message HomeRanchPetDropTime {
+    optional uint32 drop_id = 1;
+    optional uint32 time = 2;
+}
+message HomeRanchProductPetInfo {
+    optional uint32 slot = 1;
+    optional uint64 pet_guid = 2;
+    repeated HomeRanchPetDropTime drop_times = 3;
+}
+message SCHomeUnlockInfo {
+    optional uint32 type = 1;
+    optional uint32 id = 2;
+}
+message SCHomeUnlockSync {
+    repeated SCHomeUnlockInfo infos = 1;
+}
+message HomeRanchPetWorkInfo {
+    optional uint32 block_id = 1;
+    repeated HomeRanchProductPetInfo product_pets = 2;
+    optional uint64 harvest_pet = 3;
+    repeated HomeRanchDropReward drops = 4;
+    repeated PetEggbaseInfo eggs = 5;
+    repeated CommonItem stores = 6;
+    optional uint32 lv = 7;
+}
+message CSHomeRanchPlayerGetReward {
+    optional uint32 block_id = 1;
+    repeated uint32 reward_guids = 2;
+    repeated uint32 egg_guids = 3;
+}
+message CSHomeRanchPetAutoGetReward {
+    optional uint32 block_id = 1;
+    optional uint32 reward_guid = 2;
+}
+message CSHomeRanchSetPetOption {
+    optional uint32 block_id = 1;
+    optional uint32 slot = 2;
+    optional uint64 pet_guid = 3;
+    optional uint32 work_type = 4;
+    optional bool out_hub = 5;
+    optional uint64 replace_pet = 6;
+}
+message CSTechnologyTypeInfo {
+    optional uint32 type = 1;
+}
+message SCTechnologyTypeInfo {
+    optional TechnologyTypeInfo info = 1;
+}
+message SCTechnologyTypeSync {
+    optional TechnologyTypeInfo info = 1;
+    optional uint32 sync_type = 2;
+}
+message CSTechnologyLevelUp {
+    optional uint32 type = 1;
+    optional uint32 subType = 2;
+}
+message SCTechnologyLevelUp {
+    optional uint32 errorCode = 1;
+}
+message SCHomeBuildInfo {
+    repeated WorldMapHomeBuild builds = 1;
+}
+message PlayerPlanInfo {
+    optional uint32 seed_id = 1;
+    optional uint32 plan_num = 2;
+}
+message CSHatchOperator {
+    optional uint32 build_guid = 1;
+    optional uint32 egg_guid = 2;
+}
+message SCHatchFinish {
+    optional uint64 pet_guid = 1;
+}
+message CSCollectBuildCreate {
+    optional uint32 collect_id = 1;
+    optional uint32 source_build = 2;
+}
+message SCPetHandingProduct {
+    optional uint64 pet_guid = 1;
+    optional Rewards reward = 2;
+}
+message SCPetEatFinish {
+    optional uint64 pet_guid = 1;
+    optional uint32 food_id = 2;
+}
+message HomeBuildsCheckCallbackData {
+    optional uint32 area = 1;
+    optional uint32 partition = 2;
+    optional uint32 platid = 3;
+    optional string openid = 4;
+    optional uint32 timestamp = 5;
+    optional uint32 build_id = 6;
+    optional string client_version = 7;
+}
+message RelativeRotation {
+    optional float pitch_degree = 1;
+    optional float yaw_degree = 2;
+    optional float roll_degree = 3;
+}
+message RelativeScale3D {
+    optional float scale_x = 1;
+    optional float scale_y = 2;
+    optional float scale_z = 3;
+}
+message HomeBuildsCheckBuildData {
+    optional uint32 obj_id = 1;
+    optional uint32 assetid = 2;
+    optional Position3f RelativeLocation = 3;
+    optional RelativeRotation RelativeRotation = 4;
+    optional RelativeScale3D RelativeScale3D = 5;
+    optional Position3f Barycenter = 6;
+    optional uint32 Material_id1 = 7;
+    optional uint32 Material_id2 = 8;
+}
+message HomeBuildsCheck {
+    optional HomeBuildsCheckCallbackData callback_data = 1;
+    repeated HomeBuildsCheckBuildData build_data = 2;
+}
+message SSHomeBuildsCheck {
+    optional uint32 playerId = 1;
+    optional HomeBuildsCheck info = 2;
+}
+message CSHomeBuildsCheck {
+    optional uint32 err_code = 1;
+    optional uint32 err_label = 2;
+    optional string err_url = 3;
+}
+message BagSimpleProduct {
+    optional uint32 product_guid = 1;
+    optional uint32 product_id = 2;
+    optional uint32 start_time = 3;
+    optional uint32 total_count = 4;
+    optional uint32 finish_time = 5;
+}
+message SCSimpleProductInfo {
+    repeated BagSimpleProduct products = 1;
+    optional Rewards reward = 2;
+    optional Rewards special_reward = 3;
+    repeated uint32 dels = 4;
+}
+message CSPetStationedHomeHub {
+    optional uint64 pet_guid = 1;
+    optional uint32 type = 2;
+}
+message CSChangeHomeHubPos {
+    optional uint32 type = 1;
+    optional uint32 source_pos = 2;
+    optional uint32 target_pos = 3;
+}
+message CSGetAllBuildRewardReq {
+    repeated uint32 build_guid = 1;
+}
+message CSSmeltOrnament {
+    optional uint32 build_guid = 1;
+    repeated uint32 ornament_guid = 2;
+}
+message HomeDormInfo {
+    optional uint32 block_id = 1;
+    optional string name = 2;
+    repeated uint64 hero_ids = 3;
+    repeated DormHerosInfo dorm_heros = 4;
+}
+message HomeDormData {
+    repeated DormHeroPajamas hero_pajamas = 1;
+}
+message DormHeroPajamas {
+    optional uint64 hero_id = 1;
+    optional uint32 pajamas_itemid = 2;
+}
+message DormHerosInfo {
+    optional uint64 hero_id = 1;
+    optional uint32 dorm_index = 2;
+}
+message CSRoleDormDressUp {
+    optional uint64 hero_id = 1;
+    optional uint32 item_id = 2;
+}
+message CSHomeDormCheckInfo {
+    optional uint32 build_guid = 1;
+    optional uint32 dorm_index = 2;
+    optional uint64 hero_in = 3;
+    optional uint64 hero_out = 4;
+}
+message CSHomeDormName {
+    optional uint32 build_guid = 1;
+    optional string name = 2;
+}
+message SCDormHeroInfo {
+    optional uint64 hero_id = 1;
+}
+message CSHomeDormEnter {
+    optional uint32 build_guid = 1;
+    optional uint64 hero_id = 2;
+}
+message ItemParam {
+    optional uint32 item_type = 1;
+    optional uint32 item_id = 2;
+    optional uint32 item_count = 3;
+    optional uint64 item_guid = 4;
+}
+message HomeOrder {
+    optional uint32 order_guid = 1;
+    optional uint32 order_id = 2;
+    optional uint32 order_state = 3;
+    optional uint32 event_id = 4;
+    optional int32 updown_value = 5;
+    optional uint32 order_type = 6;
+}
+message HomeOrderEvent {
+    optional uint32 event_id = 1;
+}
+message HomeOrderReplace {
+    optional uint32 guid = 1;
+    optional uint32 new_guid = 2;
+}
+message SCHomeOrderSync {
+    optional uint64 refresh_time = 1;
+    optional uint64 next_refresh_time = 2;
+    repeated HomeOrder orders = 3;
+    repeated HomeOrderEvent events = 4;
+    repeated HomeOrderEvent future_events = 5;
+    repeated uint32 del_orders = 6;
+    optional uint32 refresh_count = 7;
+    optional bool is_all = 8;
+    optional uint32 home_money = 9;
+    repeated HomeOrderReplace order_replace = 10;
+}
+message CSHomeOrderAccept {
+    optional uint32 order_guid = 1;
+}
+message CSHomeOrderSubmit {
+    optional uint32 order_guid = 1;
+    repeated ItemParam items = 2;
+}
+message CSHomeOrderRefresh {
+    optional uint32 order_guid = 1;
+}
+message SCHomeFurnitureRecommend {
+    repeated uint32 id = 1;
+}
+message HomeHeroStoryInfo {
+    optional uint32 heor_id = 1;
+    optional uint32 story_id = 2;
+}
+message SCHomeHeroStoryInfo {
+    repeated HomeHeroStoryInfo storys = 1;
+}
+message CSHomeHeroStoryReward {
+    optional HomeHeroStoryInfo storys = 1;
+}
+message SCHomeHeroStoryReward {
+    optional HomeHeroStoryInfo storys = 1;
+    optional uint32 favorability = 2;
+}

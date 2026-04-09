@@ -1,0 +1,548 @@
+syntax = "proto2";
+package cs;
+
+option go_package = "GmServer/bridge/csproto;csproto";
+
+import "CommonMsg.proto";
+import "ExOptions.proto";
+import "WorldMap.proto";
+import "Pet.proto";
+
+enum CampaignStatusType {
+    CST_NONE = 0;
+    CST_QUIT = 1;
+    CST_START = 2;
+    CST_WIN = 3;
+    CST_LOSE = 4;
+    CST_FINISH_QUIT = 5;
+    CST_LOSE_QUIT = 6;
+}
+enum ActType {
+    EAT_NONE = 0;
+    EAT_LOSE = 1;
+    EAT_WIN = 2;
+    EAT_QUIT = 3;
+}
+enum CampaignSceneStatusType {
+    CSST_NORMAL = 0;
+    CSST_FINISH = 1;
+}
+enum CampaignType {
+    CT_SCENE = 1;
+    CT_BATTLE = 2;
+}
+enum CampaignChooseType {
+    CCT_WORLD = 1;
+    CCT_CHOOSE = 2;
+}
+enum TeamApplySrc {
+    TAS_NONE = 0;
+    TAS_Invite = 1;
+    TAS_Chat = 2;
+    TAS_Team_Platform = 3;
+}
+enum StaminaBoxSystemType {
+    SBST_CAMPAIGN = 1;
+    SBST_BATTLE_CAMPAIGN = 2;
+    SBST_WORLD_ENEMY = 3;
+    SBST_MULTI_CAMPAIGN = 4;
+}
+enum StaminaBoxCountType {
+    SBCT_INFINITE = 1;
+    SBCT_DAILY = 2;
+    SBCT_WEEKLY = 3;
+}
+enum BaseMaterialDungeonGroupId {
+    HeroExpDungeon = 11;
+    SoulEssenceExpDungeon = 12;
+    PetExpDungeon = 13;
+    GoldDungeon = 20;
+}
+enum EntrustType {
+    ET_NONE = 0;
+    ET_Dungeon = 1;
+    ET_Kibo = 5;
+}
+enum MultiCampaignStatus {
+    MCST_NONE = 0;
+    MCST_QUIT = 1;
+    MCST_READY = 2;
+    MCST_START = 3;
+    MCST_WIN = 4;
+    MCST_LOSE = 5;
+    MCST_FINISH_QUIT = 6;
+}
+enum CampaignExpandType {
+    CET_ROGUE_BOX = 1;
+}
+enum CMemOnlineStatus {
+    CMOS_ONLINE = 0;
+    CMOS_OFFLINE = 1;
+}
+enum MatchTeamOptionType {
+    CREATE_TEAM = 1;
+    LEAVE_TEAM = 2;
+    KICKOUT_TEAM = 3;
+    INVITE_TEAM = 4;
+    CANCEL_INVITE_TEAM = 5;
+    ACCEPT_INVITE = 6;
+    REJECT_INVITE = 7;
+    START_MATCH = 8;
+    STOP_MATCH = 9;
+    READY_MATCH = 10;
+    UNREADY_MATCH = 11;
+    DESTROY_TEAM = 12;
+    SYNC_DATA = 13;
+    TRANS_PROTO = 14;
+    CHANGE_CAPTAIN = 15;
+}
+enum MatchTeamDataSyncReason {
+    MTDSR_NONE = 0;
+    MTDSR_LOGIN = 1;
+}
+enum PlayerStoryStopOp {
+    END = 1;
+    SKIP = 2;
+}
+enum MatchStatusSyncReason {
+    MSSR_NONE = 0;
+    MSSR_OVERTIME = 1;
+}
+enum TeamDismissReason {
+    TDR_NONE = 0;
+    TDR_OVERTIME = 1;
+}
+message CampaignSceneData {
+    optional uint32 scene_id = 1;
+    optional CampaignSceneStatusType scene_status = 2;
+    repeated uint32 win_values = 3;
+    optional uint32 cur_step = 4;
+    repeated WorldObj objs = 5;
+}
+message CampaignInfo {
+    optional uint32 start_time = 1;
+    repeated uint32 star_values = 2;
+    optional CampaignStatusType status = 3;
+    optional uint32 star = 4;
+    repeated uint32 win_values = 5;
+    repeated uint32 lose_values = 6;
+    optional uint32 cur_scene_id = 7;
+    optional uint32 end_time = 8;
+    optional uint32 dungeon_id = 9;
+    optional uint32 dungeon_instance_id = 10;
+    repeated CampaignSceneData scene_datas = 11;
+    optional uint32 real_start_time = 12;
+    optional uint32 score = 13;
+    optional uint64 total_elapse_time = 14;
+    optional uint64 cache_real_start_time = 15;
+}
+message SequenceU32 {
+    optional uint32 index = 1;
+    optional uint32 value = 2;
+}
+message InstanceInfo {
+    optional uint32 ins_id = 1;
+    optional uint32 ins_star = 2;
+    optional uint64 success_time = 3;
+}
+message StaminaBox {
+    optional uint32 box_id = 1;
+    optional uint32 up_count = 2;
+    optional uint32 up_time = 3;
+    optional uint32 finish_time = 4;
+    optional uint32 box_count = 5;
+    optional uint32 box_count_time = 7;
+    optional uint32 total_pause_time = 8;
+}
+message SCInstanceInfoSync {
+    repeated InstanceInfo infos = 1;
+}
+message SCStaminaBoxSync {
+    repeated StaminaBox boxes = 1;
+}
+message CSCampaignStart {
+    optional uint32 group_id = 1;
+    optional uint32 difficulty = 2;
+}
+message CSEnterDungeonScene {
+    optional uint32 scene_id = 1;
+    optional uint32 creator_id = 2;
+    optional int32 point_id = 3;
+}
+message CSStaminaBoxGet {
+    optional uint32 box_id = 1;
+    optional uint32 times = 2;
+}
+message SCStaminaReward {
+    optional Rewards reward = 1;
+    optional Rewards extra_reward = 2;
+}
+message MultiCampaignInfo {
+    optional uint32 dungeon_id = 1;
+    optional MultiCampaignStatus status = 2;
+    optional uint32 start_time = 3;
+    optional uint32 end_time = 4;
+    optional uint32 star = 6;
+    optional uint32 score = 7;
+    optional uint32 dungeon_scene_id = 8;
+    optional uint32 enable_end_time = 9;
+    optional uint32 map_id = 10;
+    optional uint32 line_id = 11;
+    optional uint32 timeline_time = 12;
+}
+message CSMultiCampaignStart {
+    optional uint32 dungeon_id = 1;
+    optional uint32 scene_type = 2;
+    optional uint32 dungeon_site = 3;
+}
+message SCMultiCampaignStartFailed {
+    optional CSMultiCampaignStart req = 1;
+}
+message SCMultiCampaignInfoSync {
+    repeated MultiCampaignInfo camp = 1;
+}
+message MatchTeamHeroData {
+    optional uint32 hero_id = 1;
+    optional uint32 pet_id = 2;
+    optional uint32 pet_special_type = 3;
+    optional uint32 color = 4;
+}
+message TeamMemberAttr {
+    optional uint32 player_id = 1;
+    optional uint32 hp = 2;
+    optional uint32 max_hp = 3;
+    optional uint32 sp = 4;
+    optional uint32 max_sp = 5;
+}
+message TeamAttrSync {
+    repeated TeamMemberAttr attr = 1;
+}
+message TeamMemberPetDuel {
+    optional uint32 id = 1;
+    optional uint32 level = 2;
+    optional uint32 speccial = 3;
+}
+message TeamMemberPetDuelGroup {
+    optional uint32 hero_id = 1;
+    repeated TeamMemberPetDuel pet_infos = 2;
+    repeated UnitSkillInfo skills = 3;
+}
+message MatchTeamMemberData {
+    optional uint32 pid = 1;
+    optional string name = 3;
+    optional uint32 lv = 4;
+    optional uint32 control_hero = 5;
+    repeated MatchTeamHeroData heros = 6;
+    optional uint32 ui_status = 7;
+    optional uint64 ts = 8;
+    optional TeamMemberAttr attr = 9;
+    optional uint32 ping = 10;
+    optional TeamMemberPetDuelGroup pet_group = 11;
+    optional uint32 scene_type = 12;
+}
+message MatchTeamLimitData {
+    optional uint32 src = 1;
+    optional uint32 lv = 2;
+}
+message MatchTeamData {
+    optional uint32 team_id = 1;
+    optional uint32 dungeon_id = 2;
+    optional uint32 captain = 3;
+    repeated MatchTeamMemberData members = 4;
+    optional uint32 match_start_time = 5;
+    repeated uint32 ready_players = 6;
+    optional uint64 dungeon_end_time = 7;
+    optional uint32 scene_type = 8;
+    optional MatchTeamLimitData limit = 9;
+    repeated uint32 online_players = 10;
+    optional uint32 site_id = 11;
+}
+message CSSyncMatchTeamData {
+    optional MatchTeamData team = 1;
+    optional uint32 reason = 2;
+}
+message MatchTeamInviteData {
+    optional uint32 pid = 1;
+    optional uint64 team_id = 2;
+    optional uint32 dungeon_id = 3;
+    optional string name = 4;
+    optional uint32 scene_type = 5;
+}
+message CSSyncMatchTeamInviteData {
+    optional MatchTeamInviteData invite = 1;
+}
+message CSCreateMatchTeam {
+    optional uint32 dungeon_id = 1;
+    optional uint32 scene_type = 2;
+    optional uint32 dungeon_site = 3;
+}
+message CSInviteJoinMatchTeam {
+    optional uint32 pid = 1;
+    optional uint32 position = 2;
+    optional bool is_quit = 3;
+}
+message CSReplyInviteJoinMatchTeam {
+    optional bool is_accept = 1;
+    optional uint64 team_id = 2;
+}
+message CSRejectInviteJoinMatchTeam {
+    optional uint32 pid = 1;
+    optional string name = 2;
+}
+message CSKickOutMatchTeam {
+    optional uint32 pid = 1;
+}
+message CSMatchedReady {
+    optional bool is_ready = 1;
+}
+message MatchedTeamMemberData {
+    optional uint32 pid = 1;
+    optional bool ready = 2;
+}
+message CSSyncMatchedReady {
+    repeated MatchedTeamMemberData members = 1;
+    optional uint32 matched_time = 2;
+}
+message SvrMatchTeamReq {
+    optional uint32 option_id = 1;
+    optional uint32 pid = 2;
+    optional MatchTeamInviteData invite = 3;
+    optional uint32 time = 4;
+    optional bool ready = 5;
+    repeated MatchTeamMemberData member_data = 6;
+    optional CSSyncMatchTeamData team_data = 7;
+    optional uint32 transfer_msg_id = 8;
+    optional string transfer_data = 9;
+}
+message SvrMatchTeamRsp {
+    optional uint32 errcode = 1;
+}
+message SvrStartMatchReq {
+    optional MatchTeamData team = 1;
+}
+message SvrStopMatchReq {
+    optional uint32 dungeon_id = 1;
+    optional uint32 team_id = 2;
+}
+message SvrWorldMapReq {
+    optional uint32 creator_id = 1;
+    optional uint32 dungeon_id = 2;
+}
+message SvrWorldMapRsp {
+    optional uint32 errcode = 1;
+}
+message ChangeDungeonStatus {
+    optional uint32 result = 1;
+    repeated uint32 obj_ids = 2;
+}
+message EntrustInfo {
+    optional uint32 entrust_id = 1;
+    optional uint32 entrust_star = 2;
+    optional uint64 success_time = 3;
+    optional uint32 group_id = 4;
+    optional uint32 difficulty_id = 5;
+}
+message EntrustKiboInfo {
+    optional uint32 kibo_dule_id = 1;
+    optional uint32 entrust_star = 2;
+    optional uint64 success_time = 3;
+}
+message EntrustStarReward {
+    optional uint32 reward_id = 1;
+    optional uint32 reward_time = 2;
+}
+message CSEnterEntrust {
+    optional uint32 entrust_id = 1;
+}
+message CSEntrustStarReward {
+    optional uint32 reward_id = 1;
+    repeated uint32 reward_id_list = 2;
+}
+message SCEntrustInfoSync {
+    repeated EntrustInfo data = 1;
+}
+message SCEntrustKiboInfoSync {
+    repeated EntrustKiboInfo data = 1;
+}
+message SCEntrustStarRewardSync {
+    repeated EntrustStarReward data = 1;
+}
+message OverStarReward {
+    optional uint32 star = 1;
+    optional Rewards rewards = 2;
+}
+message OverStarRewardSync {
+    repeated OverStarReward data = 1;
+}
+message CampaignChallengeTagsNtf {
+    repeated CTagInfo tags_list = 1;
+    message CTagInfo {
+        optional int32 tag_type = 1;
+        optional int64 tag_progress = 2;
+    }
+}
+message CSRogueLikePlayableTimerStartReq {
+}
+message SCRogueLikePlayableTimerStartRsp {
+    optional int32 err_code = 1;
+}
+message ReplyMatchedReady {
+    optional uint32 player_id = 1;
+    optional bool ready = 2;
+}
+message ChangeMatchTeamTargetRsp {
+    optional uint32 player_id = 1;
+    optional uint32 error_code = 2;
+}
+message MatchTeamUIStatus {
+    optional uint32 player_id = 1;
+    optional uint32 status = 2;
+}
+message MatchTeamLike {
+    optional uint32 from = 1;
+    optional uint32 to = 2;
+}
+message LeaveTeamSync {
+    optional uint32 player_id = 1;
+    optional uint32 new_captain = 2;
+    optional uint32 reason = 3;
+}
+message TeamChangeTargetSync {
+    optional uint32 dungeon_id = 1;
+    optional bool ask = 2;
+}
+message TeamReplyChangeTargetSync {
+    optional uint32 player_id = 1;
+    optional bool accept = 2;
+}
+message PlayerDmgInfo {
+    optional uint32 player_id = 1;
+    optional uint64 sum_dmg = 2;
+}
+message SCPlayerDmgInfoSync {
+    repeated PlayerDmgInfo info = 1;
+}
+message CSPlayerLikeList {
+    repeated uint32 like_player_ids = 1;
+}
+message SCPlayerLikeList {
+    optional uint32 player_id = 1;
+    repeated uint32 like_player_ids = 2;
+    optional WorldMapSceneType map_type = 3;
+    optional uint32 line_id = 4;
+}
+message TeamPlayerSettlementItemInfo {
+    optional uint32 player_id = 1;
+    optional uint32 score = 2;
+    optional uint32 team_score = 3;
+    optional Rewards pass_rewards = 4;
+    optional Rewards captain_rewards = 5;
+    optional Rewards mvp_rewards = 6;
+    optional Rewards ext_rewards = 7;
+    optional uint32 cur_currency = 11;
+}
+message SCTeamPlayerSettlementInfo {
+    repeated TeamPlayerSettlementItemInfo info = 1;
+    optional uint32 mvp_player_id = 2;
+    optional uint64 pass_time = 3;
+    optional uint32 scene_type = 4;
+}
+message MultiCampaignTransfer {
+    optional uint32 npc_id = 1;
+    optional bool confirm = 2;
+}
+message MultiCampaignTransferConfirm {
+    optional bool confirm = 1;
+    optional uint32 npc_id = 2;
+    repeated uint32 player_id = 3;
+}
+message SCPlayerStoryStart {
+    optional uint32 story_id = 1;
+    optional uint32 start_time = 2;
+    optional uint32 target_id = 3;
+}
+message CSPlayerStoryStop {
+    optional uint32 story_id = 1;
+    optional uint32 op = 2;
+}
+message SCPlayerStoryStop {
+    optional uint32 story_id = 1;
+    repeated uint32 stop_ops = 2;
+}
+message MatchStatusSync {
+    optional uint32 status = 1;
+    optional uint32 dungeon_id = 2;
+    optional uint32 ts = 3;
+    optional uint32 reason = 4;
+}
+message CSPlayerLoad {
+    optional uint32 pid = 1;
+}
+message ApplyEnterTeamNtf {
+    optional uint32 player_id = 2;
+    optional string name = 3;
+    optional uint32 level = 4;
+    optional uint32 prefix_title = 5;
+    optional uint32 suffix_title = 6;
+    optional uint32 icon = 7;
+}
+message MultiCampaignDelayKickOut {
+    optional uint32 ts = 1;
+    optional uint32 delay = 2;
+}
+message TimelinePlayReq {
+    optional bool start = 1;
+    optional string timeline_id = 2;
+}
+message TimelinePlayNtf {
+    optional bool start = 1;
+    optional uint32 timeline_id = 2;
+    optional uint32 playerId = 3;
+    optional uint32 ts = 4;
+}
+message TeamDismissNtf {
+    optional TeamDismissReason reason = 1;
+}
+message S2CTeamUrgeSync {
+    optional uint32 player_id = 1;
+    optional uint64 urge_end_cd = 2;
+}
+message C2SPlatformGetTeamList {
+    optional uint32 scene_type = 1;
+    repeated uint32 filter_list = 2;
+    repeated uint32 friends = 3;
+    repeated uint32 ban = 4;
+}
+message S2CPlatformTeamList {
+    optional uint32 scene_type = 1;
+    repeated MatchTeamData teams = 2;
+}
+message PlatformTeamCount {
+    optional uint32 dungeon_id = 1;
+    optional uint32 team_num = 2;
+}
+message S2CPlatformTeamCountSync {
+    optional uint32 scene_type = 1;
+    repeated PlatformTeamCount teams = 2;
+}
+message S2CPlatformApplyHubNtf {
+    optional uint32 scene_type = 1;
+    optional uint64 fail_team_id = 2;
+}
+message CSTeamSettingLimit {
+    optional uint32 src = 1;
+    optional uint32 lv = 2;
+}
+message CSTeamApplyEnter {
+    optional uint64 team_id = 1;
+    optional uint32 src = 2;
+}
+message S2CTeamLoadingNtf {
+    optional uint32 scene_type = 1;
+    optional uint64 team_id = 2;
+}
+message S2CTeamMemOnlineNtf {
+    optional uint32 scene_type = 1;
+    optional uint32 player_id = 2;
+    optional CMemOnlineStatus status = 3;
+}

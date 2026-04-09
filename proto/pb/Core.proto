@@ -1,0 +1,41 @@
+syntax = "proto2";
+package cs;
+
+option go_package = "GmServer/bridge/csproto;csproto";
+
+import "CommonMsg.proto";
+
+message CSStatInfo {
+}
+message BagInfo {
+    repeated CommonItem items = 1;
+}
+message SoulEssenceBagInfo {
+    repeated SoulEssence soulessences = 1;
+    repeated uint32 del_pos = 2;
+    repeated uint32 cfg_story_id = 3;
+}
+message RedPointInfos {
+    repeated PlayerRedPointBase redpoints = 1;
+    repeated PlayerRedPointBase dredpoints = 2;
+}
+message PlayerHerosInfo {
+    repeated HeroItemInfo heros = 1;
+    repeated GroupHero battle_infos = 2;
+}
+message BattleBasicInfo {
+    optional uint32 dungeon_id = 1;
+    optional uint32 battle_lost_time = 2;
+}
+message GuideInfo {
+    repeated GuideBase infos = 1;
+}
+message PlayerData {
+    optional PlayerBasicInfo basic_info = 1;
+    optional PlayerHerosInfo heros_info = 3;
+    optional BagInfo sbag_infos = 5;
+    optional PlayerAttrInfo attr_infos = 6;
+    optional SoulEssenceBagInfo soulessence_infos = 8;
+    repeated GroupManager group_mgrs = 20;
+    optional GuideInfo guide_infos = 27;
+}

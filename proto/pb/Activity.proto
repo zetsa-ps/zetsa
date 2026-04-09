@@ -1,0 +1,123 @@
+syntax = "proto2";
+package cs;
+
+option go_package = "GmServer/bridge/csproto;csproto";
+
+import "ExOptions.proto";
+
+enum ActivityType {
+    AT_SIGN = 1;
+    AT_STAMINA_BOX_UP = 2;
+    AT_DAILY_SIGN = 3;
+    AT_Jade = 4;
+    AT_Jade_Avatar = 5;
+    AT_Chiyo = 6;
+    AT_Chiyo_Avatar = 7;
+    AT_KIBO_DUEL = 20;
+    AT_SUBMIT_ITEM_TASK = 30;
+    AT_DOUBLE_DROP = 40;
+    AT_Jade_Total = 100;
+    AT_Chiyo_Total = 101;
+    AT_Only_Show = 998;
+    AT_DAILY_TASK = 999;
+}
+enum ActivityTimeType {
+    ATT_NORAML = 0;
+    ATT_CYCLE = 1;
+}
+enum ActivityTaskState {
+    KDT_NONE = 0;
+    KDT_GUIDE = 1;
+    KDT_END = 2;
+}
+enum ActivityRewardState {
+    ARS_NONE = 0;
+    ARS_FINISH = 1;
+    ARS_REWARDED = 2;
+}
+message Sign {
+    optional uint32 count = 1;
+    optional uint32 time = 2;
+    optional bool show = 3;
+}
+message StaminaBoxUp {
+}
+message DailySign {
+    optional uint32 count = 1;
+    optional uint32 time = 2;
+    optional uint32 reward_count = 3;
+}
+message DailyTask {
+    optional uint32 cur_order = 1;
+    optional bool finish = 2;
+}
+message ActivityReward {
+    optional uint32 id = 1;
+    optional uint32 val = 2;
+    optional ActivityRewardState state = 3;
+}
+message ActKiBoDuel {
+    repeated uint32 duel_uids = 1;
+}
+message SubmitItemTask {
+    optional uint32 cur_order = 1;
+    optional bool finish = 2;
+}
+message DoubleDropData {
+    optional uint32 id = 1;
+    optional uint32 times = 2;
+}
+message DoubleDrop {
+    repeated DoubleDropData data = 1;
+    optional uint64 reset_time = 2;
+}
+message ScoreData {
+    optional uint32 id = 1;
+    optional uint64 score = 2;
+}
+message Jade {
+    repeated ScoreData data = 1;
+}
+message Chiyo {
+    repeated ScoreData data = 1;
+    optional uint64 maxScore = 2;
+}
+message AvatarFight {
+    repeated ScoreData data = 1;
+}
+message ActivityData {
+    optional Sign sign = 1;
+    optional StaminaBoxUp stamina_box_up = 2;
+    optional DailySign daily_sign = 3;
+    optional DailyTask daily_task = 4;
+    optional ActKiBoDuel act_kibo_duel = 5;
+    optional SubmitItemTask submit_item_task = 6;
+    optional DoubleDrop double_drop = 7;
+    optional Jade jade = 8;
+    optional AvatarFight jade_avatar = 9;
+    optional Chiyo chiyo = 10;
+    optional AvatarFight chiyo_avatar = 11;
+}
+message Activity {
+    optional uint32 id = 1;
+    optional uint32 time = 2;
+    optional ActivityData data = 3;
+    repeated ActivityReward rewards = 4;
+}
+message ActivityConf {
+    optional uint32 activity_id = 1;
+    optional uint32 start_time = 2;
+    optional uint32 end_time = 3;
+}
+message ActivitySync {
+    repeated Activity activitys = 1;
+    repeated ActivityConf confs = 2;
+    repeated uint32 del_activitys = 3;
+}
+message SCActivityGet {
+    repeated ActivityConf confs = 1;
+}
+message CSActivityReward {
+    optional uint32 activity_id = 1;
+    repeated uint32 reward_id_list = 2;
+}

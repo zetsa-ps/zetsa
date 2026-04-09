@@ -1,0 +1,322 @@
+syntax = "proto2";
+package cs;
+
+option go_package = "GmServer/bridge/csproto;csproto";
+
+import "ExOptions.proto";
+import "CommonMsg.proto";
+import "Battle.proto";
+
+enum OperateSnackBagType {
+    OSBT_SUB = 0;
+    OSBT_ADD = 1;
+    OSBT_CHANGE_LOC = 2;
+}
+enum FavorSourceType {
+    FST_BATTLE = 1;
+    FST_FOOD = 2;
+    FST_FRUIT = 3;
+    FST_CARESS = 4;
+}
+enum PetType {
+    PT_NORMAL = 0;
+    PT_TRIAL = 2;
+}
+enum PetSpecialType {
+    PST_NORMAL = 0;
+    PST_COLOR = 1;
+    PST_FLASH = 2;
+    PST_FLASH_COLOR = 3;
+    PST_NOT_DEFINE = 4;
+}
+enum PetState {
+    PET_NORMAL = 0;
+    PET_HERO = 2;
+    PET_ROULETTE = 3;
+    PET_RIDE = 4;
+    PET_WORKING = 5;
+    PET_RESTING = 6;
+    PET_PUZZLE_ROULETTE = 7;
+    PET_HUB = 8;
+}
+enum PetFSMStateType {
+    PFST_NORMAL = 0;
+    PFST_WORK = 1;
+    PFST_EAT = 2;
+    PFST_PAUSE = 3;
+    PFST_HUB = 4;
+}
+message PetEggBagInfo {
+    repeated PetEggbaseInfo eggs = 1;
+    repeated uint32 guid = 2;
+    repeated uint32 add_guid = 3;
+}
+message PetBagInfo {
+    repeated PetbaseInfo pets = 1;
+    repeated uint64 guid = 2;
+    repeated uint64 add_guid = 3;
+    repeated PetMutationInfo mutation_info = 4;
+    repeated FObjInfo fight_info = 5;
+}
+message PetMutationInfo {
+    optional uint64 guid = 1;
+    optional uint32 source_gene_id = 2;
+    optional uint32 mutation_gene_id = 3;
+}
+message PetEggbaseInfo {
+    optional uint32 guid = 1;
+    optional uint32 type = 2;
+    optional uint32 weight = 3;
+    optional uint32 odor = 4;
+    optional uint32 configid = 5;
+    optional uint32 hatch_state = 6;
+    optional PetSimpleInfo main_parents = 7;
+    optional PetSimpleInfo secondary_parents = 8;
+    optional bool lock_state = 9;
+    optional uint32 hatch_build_guid = 10;
+}
+message laborInfo {
+    optional uint32 labor_id = 1;
+    optional uint32 labor_grade = 2;
+    optional uint32 upper_labor_grade = 3;
+    optional uint32 labor_exp = 4;
+}
+message MutationGeneInfo {
+    optional uint32 pos = 1;
+    optional uint32 gene_id = 2;
+}
+message DailyFavorInfo {
+    optional uint32 source_type = 1;
+    optional uint32 favor_val = 2;
+}
+message PetbaseInfo {
+    optional bytes pet_name = 1;
+    optional uint64 guid = 2;
+    optional uint32 feature = 3;
+    repeated Comprehension comprehension = 4;
+    repeated PetSkillInfo inherent_skills = 5;
+    optional uint32 lv = 6;
+    optional uint32 config_id = 7;
+    optional uint32 exp = 8;
+    optional uint32 rank = 9;
+    optional uint64 hero_id = 11;
+    optional uint32 vitality = 12;
+    optional uint32 vitality_time = 13;
+    optional uint32 genetic_recombination_times = 14;
+    optional bool is_lock = 15;
+    optional uint32 gene_state = 16;
+    repeated NewGeneInfo gene_infos = 17;
+    optional uint32 ur_pos = 18;
+    optional uint32 speed = 19;
+    optional uint32 work_status = 21;
+    optional uint32 work_build = 20;
+    repeated uint32 talent_id = 22;
+    optional uint32 capacity_id = 23;
+    optional uint32 roulette_pos = 24;
+    optional uint32 satiety_val = 25;
+    optional uint32 canteen_id = 26;
+    optional uint32 work_start_time = 27;
+    optional bool work_pause = 28;
+    optional uint32 box_id = 29;
+    optional uint32 grade = 30;
+    optional uint32 special = 32;
+    optional uint32 base_lv = 33;
+    optional uint32 catch_item = 34;
+    optional uint32 auto_state = 35;
+    optional uint32 station_time = 36;
+    optional uint32 favor_val = 37;
+    optional uint32 favor_lv = 38;
+    optional uint32 daily_favor_time = 39;
+    repeated DailyFavorInfo daily_favor_val = 40;
+    optional uint32 type = 41;
+    optional uint32 color = 42;
+    repeated laborInfo labor_infos = 43;
+    optional MutationGeneInfo mutation_info = 44;
+    optional bool station_lock = 45;
+    optional uint32 customized_id = 46;
+    optional uint32 daily_favor_count = 47;
+    optional uint32 suppress_lv = 48;
+}
+message IncubationPoolInfo {
+    optional uint32 guid = 1;
+    optional uint32 egg_guid = 2;
+    optional uint32 finish_time = 3;
+    optional uint32 use_num = 4;
+    optional uint32 last_use_time = 5;
+}
+message IncubationInfo {
+    repeated IncubationPoolInfo incubation_pool_infos = 1;
+}
+message CSPetBreedInfo {
+    optional uint32 pid = 1;
+    optional uint64 guid = 2;
+}
+message CSHatchPetEgg {
+    optional uint32 guid = 1;
+    optional uint32 egg_guid = 2;
+}
+message CSHatchOutPetEgg {
+    optional uint32 guid = 1;
+}
+message SCHatchOutPetEggRsp {
+    optional PetbaseInfo pet = 1;
+}
+message SCPetInfoSync {
+    optional PetBagInfo pet_infos = 1;
+    optional uint32 free_reward_num = 2;
+    optional uint32 last_free_time = 3;
+    repeated uint32 record_pets = 5;
+    repeated uint32 lock_box_id = 6;
+    optional uint32 w_pet_len = 7;
+}
+message CSLockPetBox {
+    optional uint32 box_id = 1;
+    optional uint32 lock_operate = 2;
+}
+message SCPetEggInfoSync {
+    optional PetEggBagInfo egg_infos = 1;
+    optional uint32 free_reward_num = 2;
+    optional uint32 last_free_time = 3;
+}
+message SCIncubationInfoSync {
+    optional IncubationInfo incubation_infos = 1;
+}
+message CSBreedInfoUp {
+    repeated CSPetBreedInfo breed_infos = 1;
+}
+message SCBreedRsp {
+    optional PetEggbaseInfo egg_info = 1;
+}
+message CSLockPet {
+    optional uint64 guid = 1;
+    optional bool lock_operate = 2;
+}
+message CSGeneEdit {
+    repeated NewGeneInfo gene_infos = 1;
+    optional uint64 guid = 2;
+}
+message CSReleasePet {
+    repeated uint64 pet_list = 1;
+}
+message CSReleasePetEgg {
+    repeated uint32 egg_list = 1;
+}
+message CSAccelerateHatch {
+    optional uint32 guid = 1;
+    optional uint32 itemid = 2;
+}
+message CSLvUpPet {
+    optional uint64 pet_id = 1;
+    repeated SimpleItem items = 2;
+}
+message CSPetChangeName {
+    optional bytes pet_name = 1;
+    optional uint64 guid = 2;
+    optional uint32 cr = 3;
+}
+message SCRentPetInfo {
+    optional uint32 rent_nums = 1;
+    optional uint32 today_rent_num = 2;
+    optional uint32 today_draw_num = 3;
+    optional uint32 receive_num = 4;
+}
+message CSSetRoulettePos {
+    optional uint64 guid = 1;
+    optional uint32 pos = 2;
+}
+message CSSetPetBox {
+    optional uint64 guid = 1;
+    optional uint32 box_id = 2;
+    optional uint32 target_guid = 3;
+}
+message CSExChangeBoxId {
+    optional uint64 guid = 1;
+    optional uint64 target_guid = 2;
+}
+message CSOrderPetBox {
+    optional uint32 box = 1;
+}
+message SCPetSatietyInfoSync {
+    repeated PetEatInfo pet_eat_infos = 1;
+}
+message CSAddPetFood {
+    repeated CommonItem items = 1;
+    optional uint32 build_guid = 2;
+    optional uint32 operate_type = 3;
+}
+message TrialPet {
+    optional uint64 guid = 1;
+    optional bool is_trial = 2;
+    optional uint64 id = 3;
+}
+message Pet2Guids {
+    optional uint32 pet_id = 1;
+    repeated uint64 pet_guids = 2;
+}
+message PlayerMountInfo {
+    optional uint64 ride_id = 1;
+    repeated uint32 mount_saddlerys = 2;
+    repeated Pet2Guids pet_2_ids = 3;
+}
+message CSLvUpComprehension {
+    optional uint64 pet_id = 1;
+    repeated SimpleItem items = 2;
+}
+message LvUpPetShowInfo {
+    optional uint64 pet_guid = 1;
+    optional uint32 old_lv = 2;
+    optional uint32 old_exp = 3;
+    optional uint32 now_lv = 4;
+    optional uint32 now_exp = 5;
+}
+message CSLvUpPetRsp {
+    repeated LvUpPetShowInfo infos = 1;
+}
+message TransformPet {
+    optional PetbaseInfo pet_data = 1;
+    optional HeroAttrInfo pet_attr = 2;
+}
+message CSPetTransformReq {
+    optional uint64 pet_guid = 1;
+    optional uint32 pet_transform_configId = 2;
+    optional bool is_add = 3;
+}
+message CSPetTransformRsq {
+    optional uint32 error_code = 1;
+    repeated TransformPet transform_pets = 2;
+    repeated uint64 del_transform_pets = 3;
+}
+message CSLiZiStoryRecored {
+    optional uint32 cfg_id = 1;
+}
+message SCLiZiStoryRecored {
+    optional uint32 cfg_id = 1;
+}
+message CSChoseMutationReq {
+    optional uint64 pet_guid = 1;
+    optional bool is_accept = 2;
+}
+message PetHandbookInvestigate {
+    optional uint32 task_id = 1;
+    optional uint32 count = 2;
+    optional bool complete = 3;
+}
+message PetHandbookInfo {
+    optional uint32 pet_id = 1;
+    repeated PetHandbookInvestigate tasks = 2;
+    optional uint32 lv = 3;
+    optional uint32 exp = 4;
+    repeated uint32 colors = 5;
+}
+message SCPetHandbookInfoSync {
+    repeated PetHandbookInfo infos = 1;
+    optional Rewards reward = 2;
+}
+message SCPetFavorAddInfo {
+    optional uint64 pet_guid = 1;
+    optional uint32 favor_exp_add = 2;
+    optional uint32 favor_lv_add = 3;
+}
+message CSMovePetLenReq {
+    optional uint32 item_id = 1;
+}

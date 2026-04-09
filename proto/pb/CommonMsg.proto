@@ -1,0 +1,1419 @@
+syntax = "proto2";
+package cs;
+
+option go_package = "GmServer/bridge/csproto;csproto";
+
+import "ExOptions.proto";
+
+enum PlayerBasicQueryType {
+    PBQT_ALL = 0;
+    PBQT_NAME = 1;
+    PBQT_OFFLINE_TIME = 2;
+    PBQT_FACE_MINI = 3;
+    PBQT_FACE_HALF = 4;
+    PBQT_FACE_BATTLE = 5;
+    PBQT_FACE_DIY = 6;
+    PBQT_SIGN = 7;
+    PBQT_PET = 8;
+    PBQT_SIMPLE_SHOW = 9;
+    PBQT_COMPLEX_SHOW = 10;
+    PBQT_LEVEL = 11;
+    PBQT_MONEY = 12;
+    PBQT_TITLE = 13;
+    PBQT_BIRTH = 14;
+    PBQT_STAND_PLATES = 15;
+    PBQT_APPAREL_INFO = 16;
+    PBQT_SHOW_CASE = 17;
+}
+enum PlayerLoginType {
+    PLT_LOGIN = 0;
+    PLT_CREATE = 1;
+    PLT_SHORT_RECONNECT = 2;
+    PLT_LONG_RECONNECT = 3;
+    PLT_SWITCH_SVR = 4;
+}
+enum PlayerNoviceTaskStatus {
+    PNTS_ACCEPTED = 0;
+    PNTS_FINISHED = 1;
+    PNTS_REWARD_SENT = 2;
+}
+enum SystemId {
+    SI_NONE = 0;
+    SI_HERO_FAVOR = 50;
+    SI_HERO_GIFT = 51;
+    SI_NOVICE_TASK = 58;
+    SI_PET_SPEICAL = 96;
+    SI_ACHIEVEMENT = 12;
+    SI_CHARGE = 16;
+    SI_RANDOM_TASK = 70;
+    SI_CHANGE_WARDROBE = 73;
+    SI_FIELD_UNPLANT = 156;
+    SI_FIELD_CLOSE = 157;
+    SI_PRODUCT = 164;
+    SI_HOME_WORK_BIBO = 170;
+    SI_HOME_RANCH_KIBO = 171;
+    SI_DUNGEON_ENTRUST = 173;
+    SI_PET_TALENT_FOOD = 507;
+    SI_PET_MUTATION = 509;
+    SI_NPC_SHOP = 653;
+    SI_HOME_ORDER = 1301;
+    SI_HERO_NEST_COOP = 2001;
+    SI_ROGUE_LIKE_ENTRY = 1401;
+}
+enum MoveStatus {
+    MS_TRANSFER = 1;
+    MS_JUMP = 2;
+    MS_DODGE = 3;
+    MS_RUN = 4;
+    MS_WALK = 5;
+}
+enum RHDGetType {
+    RHD_NONE = 0;
+    RHD_PICK = 1;
+    RHD_TALK = 2;
+}
+enum OrnamentEquipType {
+    OET_SUIT = 0;
+    OET_WEAPON = 1;
+    OET_CHEST = 2;
+    OET_LEG = 3;
+    OET_EARRINGS = 4;
+    OET_RING = 5;
+}
+enum HeroType {
+    HT_NORMAL = 0;
+    HT_MAIN = 1;
+    HT_TRIAL = 2;
+}
+enum FurnitureType {
+    FT_TOBEGIVEN = 0;
+    FT_ACCEPT = 1;
+}
+enum PlayerSexType {
+    PST_MALE = 1;
+    PST_FEMALE = 2;
+}
+enum OnlineMode {
+    ONLINE_MODE_DEFAULT = 0;
+    SINGLE_PLAYER = 1;
+    MULTI_PLAYER_CITY = 2;
+    MULTI_PLAYER_PVE = 3;
+    MULTI_PLAYER_DUNGEON = 4;
+    SINGLE_PLAYER_DUNGEON = 5;
+    ONLINE_MODE_NEST_COOP = 6;
+    ONLINE_MODE_NEST_COOP_PVE = 7;
+}
+enum OrnamentAffixType {
+    OAT_NONE = 0;
+    OAT_GOLDEN_SIDE = 1;
+}
+enum BuffFromType {
+    SKILL = 1;
+    SCENE = 2;
+    BEHAVIOR_TREE = 3;
+    FSM = 4;
+}
+enum GroupManagerType {
+    GMT_WORLD = 1;
+    GMT_ROGUE = 3;
+    GMT_TOWER = 4;
+}
+enum AliveStateType {
+    AST_Alive = 0;
+    AST_Dead = 1;
+    AST_OverHurt = 2;
+}
+enum GroupManagerChangeSrc {
+    GMS_DEAULFT = 0;
+    GMS_SWITCH = 1;
+}
+enum ChatInfoType {
+    CHAT_NORMAL = 0;
+    CHAT_COMMON = 1;
+    CHAT_EMOJI = 2;
+}
+enum FishWeightStatusType {
+    FWST_NORMAL = 0;
+    FWST_MAX = 1;
+    FWST_MIN = 2;
+    FWST_NEW = 3;
+}
+enum CookFinishStatusType {
+    CFST_NORMAL = 0;
+    CFST_PERFECT = 1;
+    CFST_FAIL = 2;
+    CFST_COUNT = 3;
+}
+enum FoodType {
+    FT_HP = 1;
+    FT_REVIVE = 2;
+    FT_DEFEND = 3;
+    FT_ATTACK = 4;
+    FT_STAMINA = 5;
+}
+enum UseFoodTarget {
+    UFT_HERO = 0;
+    UFT_PET = 1;
+}
+enum HPRechargeType {
+    HPRT_VALUE = 1;
+    HPRT_RATE = 2;
+}
+enum GMPGameSystemEnum {
+    GroupSystem = 4;
+    ShopSystem = 6;
+    ShopSpecial = 680;
+    HomeSystem = 7;
+    HomeTechSystem = 702;
+    HomeBuildBag = 703;
+    AchievementSystem = 12;
+    MailSystem = 15;
+    FriendSystem = 17;
+    ChatSystem = 18;
+    PersonalCardSystem = 19;
+    ChangeName = 191;
+    ChangePersonalSign = 192;
+    PhotoSystem = 20;
+    HeroCharDataSystem = 26;
+    HeroCharDataStory = 261;
+    HeroCharDataVoice = 262;
+    HeroCharDataStoryline = 263;
+    DungeonGate = 35;
+    RechargeSystem = 601;
+    BaseMaterialDungeon = 36;
+    HeroFavorSystem = 50;
+    TaskRandomSystem = 70;
+    WorldTimeSyncSystem = 95;
+    StaminaBuy = 99;
+    PetColorSystem = 161;
+    PetFlashSystem = 162;
+    PetColorFlashSystem = 163;
+    KiboDuelTypeNpc = 1010;
+    KiboDuelTypeLevels = 1011;
+    ChangeHomeName = 1100;
+    ChangePetName = 1101;
+    ChangePetBagName = 1102;
+    ChangeGroupName = 1103;
+    ChangeFriendNickName = 1104;
+    ChangeMapSignName = 1105;
+    ChangePhotoTemplateName = 1106;
+    WaterMarkSystem = 9901;
+    CVShowSystem = 9902;
+    OrderBuildSystem = 1301;
+    StarSynthesisSystem = 10121;
+    GodTowerSystem = 1501;
+    PamiMailSystem = 60;
+    MultiBattle = 1733;
+    AssignTask = 173;
+    RogueSystem = 1401;
+    HomeDorm = 53;
+    HomeRanch = 171;
+    HomeCenter = 165;
+    HomeBuildPack = 1502;
+    CommunitySystem = 74;
+    BeginTrain = 1731;
+    KiboDuelTask = 1732;
+    SysMax = 10122;
+}
+enum MedicineTargeType {
+    Single = 1;
+    all = 2;
+}
+enum MedicineType {
+    Damage = 1;
+    Resistance = 2;
+    Relive = 3;
+}
+message GameServerAddr {
+    optional uint32 server_id = 1;
+    optional string server_ip = 2;
+    optional uint32 server_port = 4;
+}
+message Uint32 {
+    optional uint32 u32 = 1;
+}
+message StrMsg {
+    optional bytes str = 1;
+}
+message CommonNotice {
+    optional int32 proto = 1;
+    optional bytes notice = 2;
+}
+message CommonTime {
+    optional int32 time_zone = 1;
+    optional int64 time = 2;
+    optional uint32 time_usec = 3;
+}
+message TeenInfo {
+    optional uint32 end_time = 1;
+}
+message PlayerExtraPubInfo {
+    optional uint32 achievement_point = 1;
+    optional uint32 hero_count = 2;
+    optional uint32 pet_count = 3;
+}
+message PlayerBasicInfo {
+    optional uint32 id = 1;
+    optional uint32 zone_id = 2;
+    optional bytes name = 3;
+    optional uint32 sex = 4;
+    optional uint32 birth = 5;
+    optional uint32 lv = 6;
+    optional uint32 offlinetm = 7;
+    optional uint32 onlinetm = 8;
+    optional bool is_busy = 9;
+    optional WardrobeInfo wardrobe = 10;
+    optional bytes sign = 11;
+    optional bytes account = 12;
+    optional int32 regtm = 13;
+    optional int32 gold = 14;
+    optional int32 diamond = 15;
+    optional int32 exp = 16;
+    optional int32 home_lv = 17;
+    optional SimpleShowInfo info = 18;
+    optional ComplexShowInfo detail_info = 19;
+    optional PetlendBasicInfo lend_info = 20;
+    optional int32 language = 21;
+    repeated uint32 lock_system = 22;
+    optional uint32 preffix_title = 23;
+    optional uint32 suffix_title = 24;
+    optional bytes little_avatar = 25;
+    optional uint32 last_change_name_time = 26;
+    optional PlayerBirthdayInfo birthday = 27;
+    optional uint32 world_time = 28;
+    optional StandPlatesInfo stand_plates = 29;
+    optional HeroSendGiftInfo hero_gift_info = 30;
+    optional bool is_created = 31;
+    repeated SceneShowcase scene_showcase = 32;
+    optional uint32 skip_guide = 33;
+    optional ApparelInfo apparel_info = 34;
+    optional uint32 show_case = 35;
+    optional uint32 show_case_id = 36;
+    optional uint64 team_id = 37;
+    optional uint32 map_id = 38;
+    optional uint32 nest_star = 39;
+    optional uint32 nest_guide_finish = 40;
+}
+message SpecialPetGuarantee {
+    optional uint32 special_type = 1;
+    optional uint32 guarantee_time = 2;
+    optional uint32 guarantee_day = 3;
+}
+message SpecialRefreshTime {
+    optional uint32 map_id = 1;
+    optional uint32 next_refresh_time = 2;
+}
+message CardDressListInfo {
+    repeated uint32 id = 1;
+}
+message StandPlatesBagInfo {
+    optional uint32 config = 1;
+    optional string url = 2;
+}
+message SceneShowcase {
+    optional uint32 id = 1;
+    optional string name = 2;
+    optional string Cover = 3;
+    optional string show_data = 4;
+}
+message StandPlatesInfo {
+    optional uint32 backboard = 1;
+    optional uint32 baseboard = 2;
+    optional uint32 pet_accessory = 3;
+    optional StandPlatesBagInfo role = 4;
+    optional uint32 achievement_point = 5;
+    optional uint32 hero_count = 6;
+    optional uint32 pet_count = 7;
+    optional uint32 profile = 8;
+    optional uint32 profile_frame = 9;
+}
+message PlayerQueryReq {
+    repeated uint32 types = 1;
+    repeated uint32 player_ids = 2;
+    optional uint32 qtype = 3;
+}
+message PlayerBasicInfos {
+    repeated PlayerBasicInfo player_infos = 1;
+}
+message AllHomeBasicInfo {
+    repeated HomeBasicInfo home = 1;
+}
+message HomeBasicInfo {
+    optional uint32 home = 1;
+    optional uint32 id = 2;
+}
+message PetlendBasicInfo {
+    optional uint32 can_lend_num = 1;
+    optional int32 last_lend_time = 2;
+}
+message PetRentInfo {
+    optional uint32 rent_nums = 1;
+    optional uint32 today_rent_num = 2;
+    optional uint32 last_rent_time = 3;
+}
+message Comprehension {
+    optional uint32 attr_id = 1;
+    optional int32 value = 2;
+    optional uint32 level = 3;
+    optional uint32 cur_exp = 4;
+}
+message PlayerBirthdayInfo {
+    optional uint32 month = 1;
+    optional uint32 day = 2;
+}
+message SimpleShowInfo {
+    repeated uint32 achievement = 1;
+    repeated SimpleHeroShowInfo hero = 2;
+    repeated SimplePetShowInfo pet = 3;
+}
+message SimpleHeroShowInfo {
+    optional uint64 id = 1;
+    optional uint32 config = 2;
+    optional uint32 lv = 3;
+    optional uint32 pos = 4;
+    optional uint32 star = 5;
+}
+message SimplePetShowInfo {
+    optional uint64 guid = 1;
+    optional uint32 id = 2;
+    optional uint32 rank = 3;
+    optional uint32 lv = 4;
+    optional uint32 special = 5;
+    optional uint32 color = 6;
+    optional uint32 grade = 7;
+    optional uint32 pos = 8;
+}
+message BorrowPetInfo {
+    optional bytes name = 1;
+    optional bytes avatar_url = 2;
+    repeated PetSimpleInfo show_pets = 3;
+    optional uint32 pid = 4;
+}
+message PlayerborrowPetInfos {
+    repeated BorrowPetInfo borrow_infos = 1;
+}
+message AttrInfo {
+    optional uint32 attr_id = 1;
+    optional int64 attr_val = 2;
+    optional uint32 deadtime = 3;
+    optional uint32 extra_limit = 4;
+}
+message PlayerAttrInfo {
+    repeated AttrInfo attrs = 1;
+}
+message HeroSkillInfos {
+    repeated HeroSkillInfo skills = 1;
+}
+message HeroSkillInfo {
+    optional uint32 skill_id = 1;
+    optional uint32 skill_level = 2;
+}
+message furnitureInfo {
+    optional uint32 furniture_id = 1;
+    optional uint32 state = 2;
+}
+message HeroItemInfo {
+    optional uint64 guid = 1;
+    optional uint32 hero_lv = 2;
+    optional uint32 hero_exp = 3;
+    optional uint32 hero_rank = 4;
+    optional uint32 wguid = 5;
+    repeated uint32 system_skill_levels = 6;
+    optional uint32 hero_star = 7;
+    repeated uint32 oguid = 9;
+    optional uint32 waguid = 10;
+    optional uint64 pet_id = 12;
+    optional uint32 favorability_exp = 13;
+    optional uint32 favorability_lv = 14;
+    optional bool trail = 15;
+    optional uint32 conf_id = 16;
+    repeated uint32 store_favor_rewards = 17;
+    repeated uint32 rune_ids = 18;
+    optional uint32 type = 19;
+    optional uint64 trial_pet = 20;
+    optional uint64 hero_rank_reward = 21;
+    repeated uint32 furnitures = 22;
+    optional uint32 fight_favorability_exp = 23;
+    optional uint32 dorm_id = 24;
+    optional uint32 daily_gift_num = 25;
+}
+message MountItemInfo {
+    optional uint32 conf_id = 1;
+    optional uint32 mount_status = 2;
+    optional uint64 mount_uid = 3;
+}
+message WearInfo {
+    optional uint32 pos = 1;
+    optional uint32 weapon_guid = 2;
+}
+message PGSkillInfo {
+    optional uint32 skill_id = 1;
+    optional uint32 skill_lv = 2;
+}
+message PGProInfo {
+    optional uint32 pro_id = 1;
+    optional uint32 pro_lv = 2;
+}
+message PGArmInfo {
+    optional uint32 pos = 1;
+    optional uint32 arm_lv = 2;
+    optional uint32 weapon_guid = 3;
+}
+message Position {
+    optional sint32 x = 1;
+    optional sint32 y = 2;
+    optional sint32 z = 3;
+}
+message Position3f {
+    optional float x = 1;
+    optional float y = 2;
+    optional float z = 3;
+}
+message FightAttrOne {
+    optional int32 attr_id = 1;
+    optional sint64 attr_val = 2;
+}
+message FightAttr {
+    repeated FightAttrOne attrs = 1;
+}
+message ColorPair {
+    optional uint32 index = 1;
+    optional uint32 color_id = 2;
+}
+message PartInfo {
+    optional uint32 type = 1;
+    optional uint32 id = 2;
+    repeated ColorPair colors = 3;
+}
+message AvatarPair {
+    optional string avatar_type = 1;
+    optional string avatar_url = 2;
+}
+message WardrobeInfo {
+    repeated PartInfo parts = 1;
+    optional uint32 sex = 2;
+    optional uint32 height = 3;
+    repeated AvatarPair avatars = 4;
+    optional uint32 complexion = 5;
+}
+message ApparelInfo {
+    repeated uint32 apparel_ids = 1;
+}
+message MoveInfo {
+    optional Position pos = 1;
+    optional uint32 move_status = 2;
+    optional uint32 angle = 3;
+    optional uint32 area_id = 4;
+    optional sint32 dir_x = 5;
+    optional sint32 dir_y = 6;
+    optional uint32 is_ground = 7;
+    optional Position velocity = 8;
+    optional uint64 timestamp = 9;
+    optional sint32 dir_z = 10;
+    optional uint32 pitch = 11;
+    optional sint32 axis_x = 12;
+    optional sint32 axis_y = 13;
+}
+message MoveItem {
+    optional MoveInfo info = 1;
+    optional uint64 uuid = 2;
+}
+message MoveMsg {
+    repeated MoveItem move = 1;
+    optional uint32 map_id = 2;
+}
+message DetailInfo {
+    optional uint32 eid = 1;
+    optional double px = 2;
+    optional double py = 3;
+    optional double angle = 4;
+    optional double maxa = 5;
+    optional double maxb = 6;
+    optional double mina = 7;
+    optional double minb = 8;
+    optional double type = 9;
+    optional double scale = 10;
+}
+message ZonePlayerIDs {
+    repeated uint32 pids = 1;
+}
+message PlayerSimpleInfo {
+    optional uint32 id = 1;
+    optional uint32 zone_id = 2;
+    optional bytes name = 3;
+    optional uint32 lv = 4;
+    optional uint32 offlinetm = 5;
+    optional uint32 onlinetm = 6;
+    optional bool is_busy = 7;
+    optional bytes head = 8;
+    optional bytes sign = 9;
+}
+message PlayerMiniInfo {
+    optional uint32 id = 1;
+    optional uint32 zone_id = 2;
+    optional bytes name = 3;
+    optional bytes head = 4;
+}
+message CommonPlayerSimpleInfo {
+    optional uint32 type = 1;
+    repeated PlayerSimpleInfo info = 2;
+}
+message CommonPlayerMiniInfo {
+    optional uint32 type = 1;
+    repeated PlayerMiniInfo info = 2;
+}
+message ExtContext {
+    optional uint32 arg1 = 1;
+    optional uint32 arg2 = 2;
+}
+message CommonItem {
+    optional uint32 itemid = 1;
+    optional uint32 itemnum = 2;
+    optional uint32 deadtime = 3;
+    repeated uint32 exts = 4;
+    optional uint32 itemtype = 5;
+    repeated CommonItem varitems = 6;
+    optional uint64 guid = 7;
+    repeated ExtContext ext_context = 8;
+    optional uint32 more_itemnum = 9;
+}
+message ExtraInfo {
+    optional uint32 attr_id = 1;
+    optional uint32 val = 2;
+}
+message SoulEssence {
+    optional uint32 guid = 1;
+    optional uint32 id = 2;
+    optional uint32 lv = 3;
+    optional uint64 wear_hero = 5;
+    optional uint32 advance = 6;
+    optional uint32 exp = 7;
+    optional bool lock = 9;
+    optional uint32 rank = 10;
+    optional uint32 nums = 11;
+    optional bool zombie = 12;
+}
+message SoulEssenceAddLvCost {
+    optional uint32 id = 1;
+    optional uint32 num = 2;
+}
+message OrnamentSecondAttr {
+    optional uint32 type = 1;
+    optional int32 key = 2;
+    optional int32 val = 3;
+    optional uint32 sort = 4;
+}
+message RewardItemInfo {
+    optional uint32 item_type = 1;
+    optional uint32 item_id = 2;
+    optional uint32 item_num = 3;
+}
+message OrnamentAffixInfo {
+    optional uint32 type = 1;
+    optional uint32 id = 2;
+    optional int32 val = 3;
+}
+message Ornament {
+    optional uint32 guid = 1;
+    optional uint32 id = 2;
+    optional uint32 lv = 3;
+    repeated OrnamentSecondAttr infos = 4;
+    optional uint64 wear_hero = 5;
+    optional bool lock = 7;
+    optional uint32 group = 9;
+    optional bool del = 10;
+    repeated RewardItemInfo decomposes = 11;
+    optional uint32 score = 12;
+    repeated OrnamentAffixInfo affixes = 13;
+}
+message OrnamentPlan {
+    optional uint32 id = 1;
+    optional bytes name = 2;
+    repeated uint32 guid = 3;
+}
+message Ops {
+    optional uint32 proto_id = 1;
+    optional bytes msg = 2;
+}
+message PlayerOp {
+    optional uint32 pid = 1;
+    repeated Ops ops = 2;
+}
+message TurnOpInfo {
+    optional uint32 turn = 1;
+    repeated PlayerOp ops = 2;
+}
+message Rewards {
+    repeated CommonItem rewards = 1;
+    optional uint32 src = 2;
+    optional uint32 seq = 3;
+}
+message PlayerFeverItemBase {
+    optional uint32 itemid = 1;
+    optional uint32 weargroup = 2;
+}
+message Condition {
+    repeated uint32 args = 1;
+}
+message MailInfo {
+    optional uint32 createtm = 2;
+    optional bytes sender_id = 3;
+    optional uint32 template_id = 4;
+    repeated ExtraInfo args = 5;
+    optional bytes title = 6;
+    optional bytes content = 7;
+    optional Rewards reward = 8;
+    repeated Condition limit = 9;
+    optional uint32 guid = 10;
+    optional bool fetch = 11;
+    optional uint32 effecttm = 12;
+    optional bool read = 13;
+    optional bool collect = 14;
+    optional bool is_auto = 15;
+    optional uint32 condition_type = 16;
+    repeated uint64 black_pids = 17;
+}
+message GlobalMail {
+    optional uint64 guid = 1;
+    optional MailInfo mail = 2;
+}
+message SvrSendMail {
+    optional uint32 mail_id = 1;
+    optional bool is_unique = 2;
+}
+message RankingInfo {
+    optional uint32 pid = 1;
+    optional int64 score = 2;
+    optional int32 rank = 3;
+}
+message SvrListInfo {
+    optional uint32 id = 1;
+    optional bytes ip = 2;
+    optional uint32 port = 3;
+    optional bytes desc = 4;
+}
+message MedalInfoBase {
+    optional uint32 kindid = 1;
+    optional uint32 val = 2;
+    optional uint32 rank = 3;
+    optional uint32 time = 4;
+}
+message PgMedalInfoBases {
+    optional uint32 pgid = 1;
+    repeated PgMedalInfoBase infos = 9;
+}
+message PgMedalInfoBase {
+    optional uint32 kindid = 1;
+    optional uint32 val = 2;
+    optional uint32 rank = 3;
+    optional uint32 time = 4;
+}
+message WearMedal {
+    optional uint32 pos = 1;
+    optional uint32 kindid = 2;
+}
+message WearMedals {
+    repeated WearMedal infos = 1;
+}
+message HomeDecoration {
+    optional uint32 guid = 1;
+    optional uint32 item_id = 2;
+    optional float px = 3;
+    optional float py = 4;
+    optional float pz = 5;
+    optional float rotation = 6;
+    optional uint32 fguid = 7;
+}
+message HomeBuff {
+    optional uint32 buff_id = 1;
+    optional uint32 buff_val = 2;
+}
+message PlayerHomeInfoBase {
+    optional uint32 blocking_id = 1;
+    repeated HomeDecoration infos = 2;
+    repeated uint32 del_dinfos = 3;
+}
+message HomeFloorInfo {
+    optional uint32 id = 1;
+    optional uint32 scene_type = 2;
+    repeated PlayerHomeInfoBase infos = 3;
+    optional uint32 lv = 4;
+}
+message HomeBlockingId {
+    optional uint32 floor_id = 1;
+    optional uint32 blocking_id = 2;
+}
+message ItemPosition {
+    optional uint32 px = 1;
+    optional uint32 py = 2;
+}
+message MainBuild {
+    optional uint32 home = 1;
+    optional uint32 id = 2;
+    optional uint64 upgrade_time = 3;
+    optional bool need_dirty = 4;
+}
+message BuildBase {
+    optional uint32 guid = 1;
+    optional uint32 id = 2;
+    optional uint32 home_id = 3;
+    optional uint64 upgrade_time = 4;
+    optional uint64 put_time = 5;
+    optional bool need_dirty = 6;
+}
+message ProsperityReward {
+    optional uint32 lv = 1;
+}
+message GuideBase {
+    optional uint32 id = 1;
+    optional uint32 sub_id = 2;
+    optional bool complete = 3;
+}
+message OfflineMsg {
+    optional uint32 sender_id = 1;
+    optional uint32 szone_id = 2;
+    optional bytes msg = 3;
+    optional uint32 proto_id = 4;
+    optional uint32 inner_op_id = 5;
+    optional uint32 tzone_id = 6;
+}
+message PlayerBan {
+    optional uint32 zoneid = 1;
+    optional uint32 bantime = 2;
+}
+message PlayerBans {
+    repeated PlayerBan infos = 1;
+}
+message OrderInfo {
+    optional bytes cp_trade_no = 1;
+    optional uint32 player_id = 2;
+    optional int32 total_fee = 3;
+    optional bytes currency_type = 4;
+    optional uint32 product_id = 5;
+    optional bytes create_time = 6;
+    optional uint32 trade_time = 7;
+    optional bytes is_test_order = 8;
+    optional uint32 channel_type = 9;
+    optional bytes channel_trade_no = 10;
+    optional bytes channel = 11;
+    optional uint32 diamonds = 12;
+    optional uint32 final_diamonds = 13;
+    optional bool is_double = 14;
+    optional uint32 slot_id = 15;
+}
+message PlayerActivity {
+    optional uint32 id = 1;
+    repeated uint32 param = 3;
+}
+message ActivityList {
+    optional uint32 id = 1;
+    optional uint32 begin_time = 2;
+    optional uint32 end_time = 3;
+    optional uint32 type_id = 4;
+    optional uint32 type_param = 5;
+    optional bytes content = 6;
+}
+message TitleList {
+    repeated uint32 preffix_title = 1;
+    repeated uint32 suffix_title = 2;
+}
+message QuestInfo {
+    repeated uint32 quest_vals = 1;
+    optional uint32 quest_id = 2;
+    optional bool is_rewarded = 3;
+}
+message QuestGroupInfo {
+    optional uint32 group_id = 1;
+    optional bool is_finish = 3;
+    optional uint32 step = 4;
+    repeated QuestInfo quests = 5;
+}
+message QuestGroupInfos {
+    repeated QuestGroupInfo groups = 1;
+}
+message ProductRecord {
+    optional uint32 id = 1;
+    optional uint64 time = 2;
+    optional uint32 count = 3;
+    optional bool unlock = 4;
+}
+message ProductOrder {
+    optional uint32 id = 1;
+    optional uint32 count = 2;
+    optional uint64 start_time = 3;
+    optional uint32 finish_count = 4;
+}
+message ProductQueue {
+    optional uint32 type = 1;
+    repeated ProductOrder orders = 2;
+}
+message ProductInfo {
+    repeated ProductQueue queues = 1;
+    repeated ProductRecord records = 3;
+}
+message ShopItem {
+    optional uint32 slot_id = 1;
+    optional uint32 goods_id = 2;
+    optional uint32 shop_store_num = 3;
+    optional uint32 buy_times = 4;
+    optional uint32 dead_time = 5;
+    repeated uint32 unlock_progress = 6;
+}
+message ShopInfo {
+    optional uint32 shop_id = 1;
+    repeated ShopItem items = 2;
+    optional uint32 begin_time = 4;
+    optional uint32 end_time = 5;
+}
+message BuffRandomInfo {
+    optional uint32 seed = 1;
+    optional int32 random = 2;
+}
+message AttributeEntry {
+    optional int32 key = 1;
+    optional sint32 i32_value = 2;
+    optional int64 i64_value = 3;
+    optional float f32_value = 4;
+    optional double f64_value = 5;
+    optional string str_value = 6;
+    optional bool bool_value = 7;
+    optional bytes binary_value = 8;
+    repeated uint32 ui32_values = 9;
+    repeated uint64 ui64_values = 10;
+    repeated bool bool_values = 11;
+    repeated float float_values = 12;
+    repeated uint64 ui64_dic_values = 13;
+    repeated sint32 si32_values = 14;
+    repeated sint64 si64_values = 15;
+}
+message BuffInfo {
+    optional uint32 buf_id = 1;
+    optional uint32 cfg_id = 4;
+    optional uint32 layer = 5;
+    optional uint64 begin_time = 6;
+    optional uint64 duration_time_p = 7;
+    optional uint64 attacker_id = 8;
+    optional uint64 executor_id = 9;
+    optional uint64 source_id = 10;
+    optional uint64 creator_id = 11;
+    optional uint32 collision_type = 13;
+    repeated BuffRandomInfo random = 14;
+    optional uint32 from_type = 15;
+    optional uint32 from_params = 16;
+    optional uint32 collider_index = 17;
+    optional Position collider_point = 18;
+    optional Position attack_point = 19;
+    optional Position attack_dir = 20;
+    repeated AttributeEntry entrys = 21;
+    optional sint32 change_value = 22;
+    optional int32 attribute_id = 23;
+    optional int32 calculate_type = 24;
+    optional bool remove_when_switch_client = 25;
+    optional uint32 damage_cri_pct = 26;
+}
+message SkillCD {
+    optional uint32 skill_id = 1;
+    optional uint64 begin_time = 2;
+    optional uint32 cd = 3;
+    optional uint64 cd_time_p = 4;
+    optional uint32 segment = 5;
+    optional uint64 self_cd = 6;
+    optional uint64 public_cd = 7;
+    optional uint64 gcd = 8;
+}
+message SkillCDList {
+    repeated SkillCD cds = 1;
+}
+message GroupHero {
+    optional uint64 hero_id = 1;
+    optional uint32 hp = 2;
+    optional uint32 sp = 3;
+    repeated SkillCD skills = 4;
+    repeated BuffInfo buffs = 5;
+    optional uint32 time = 6;
+    optional uint32 alive_state = 7;
+    optional uint32 rescue_val = 8;
+}
+message BIHero {
+    optional uint64 guid = 1;
+    optional uint64 hero_id = 2;
+    optional uint32 lv = 3;
+}
+message GroupCharge {
+    optional uint32 lastdaytime = 3;
+    optional uint32 reduce_time = 4;
+    optional uint32 ban_time = 5;
+    optional uint32 add_hp = 6;
+    optional uint32 cur_value = 7;
+}
+message ChargeHp {
+    optional uint32 cur_hp = 1;
+    optional uint32 add_hp = 2;
+    optional uint64 hero_id = 3;
+}
+message GroupHeroPos {
+    optional uint64 hero_id = 1;
+}
+message Group {
+    optional uint32 id = 1;
+    repeated GroupHeroPos heros = 2;
+    optional bytes group_name = 3;
+    optional uint64 control = 4;
+}
+message GroupManager {
+    repeated Group groups = 1;
+    optional uint32 cur_group = 3;
+    optional uint32 type = 4;
+    optional uint32 last_group = 5;
+    optional GroupManagerChangeSrc src = 6;
+}
+message PlayerFaceInfo {
+    optional bytes face_data = 1;
+}
+message Achievement {
+    optional uint32 id = 1;
+    optional uint32 achievement_id = 2;
+    repeated uint32 count = 3;
+    optional bool is_reward = 4;
+    optional uint64 finish_time = 5;
+    repeated uint32 sub_ach_id = 6;
+    repeated uint64 sub_ach_fini_time = 7;
+}
+message AchievementGroup {
+    optional uint32 id = 1;
+    optional bool is_reward = 2;
+}
+message CharDataInfo {
+    optional uint32 data_id = 1;
+    optional uint32 data_val = 2;
+}
+message CharDataInfos {
+    repeated CharDataInfo infos = 1;
+}
+message HeroCharDataInfos {
+    optional uint64 hero_id = 1;
+    repeated CharDataInfos char_data = 2;
+}
+message FriendData {
+    optional uint32 id = 1;
+    optional bytes remark = 2;
+    optional uint32 time = 3;
+    optional uint32 status = 4;
+}
+message SvrFriendOp {
+    optional uint32 id = 1;
+    optional uint32 opid = 2;
+    optional uint32 time = 3;
+}
+message FriendId {
+    optional uint32 id = 1;
+    optional bytes remark = 2;
+    optional uint64 time = 3;
+    optional bool is_shield = 4;
+    optional bool tar_shield = 5;
+}
+message OtherId {
+    optional uint32 id = 1;
+    optional uint64 time = 2;
+}
+message FriendAllId {
+    repeated OtherId apply = 1;
+    repeated OtherId ban = 2;
+    repeated OtherId recent = 3;
+    repeated FriendId friends = 4;
+}
+message FriendChat {
+    optional uint32 id = 1;
+    repeated ChatInfo chats = 2;
+    optional uint32 read_order = 10;
+}
+message ChatInfo {
+    optional bytes msg = 1;
+    optional uint32 time = 2;
+    optional uint32 type = 3;
+    optional uint32 player_id = 4;
+    optional uint32 order = 5;
+    optional PlayerBasicInfo basic_info = 6;
+    optional bytes extra_info = 7;
+}
+message GeneSkillInfo {
+    optional uint32 gene_id = 1;
+    optional uint32 gene_lv = 2;
+    optional bool is_ur = 3;
+    optional uint32 pos = 4;
+    optional uint32 list_pos = 5;
+}
+message GeneList {
+    repeated GeneSkillInfo gene_infos = 1;
+    optional bool is_lock = 2;
+}
+message LendSuccInfo {
+    optional uint32 lend_time = 1;
+}
+message BattleFormation {
+    optional uint32 id = 1;
+    optional uint32 level = 2;
+    optional uint32 item_id = 3;
+}
+message PlayerActiveTaskInfo {
+    optional uint32 task_id = 1;
+    optional uint32 task_value = 2;
+    optional uint32 task_status = 3;
+}
+message FishGuarantee {
+    optional uint32 fail_time = 1;
+    optional uint32 fail_count = 2;
+    optional uint32 success_count = 3;
+}
+message FishHandbook {
+    optional uint32 item_id = 1;
+    optional uint32 min_weight = 2;
+    optional uint32 max_weight = 3;
+    optional uint32 history_count = 4;
+    optional bool read = 5;
+}
+message FishEventHandbook {
+    optional uint32 event_id = 1;
+    optional uint32 history_count = 2;
+    optional bool read = 3;
+}
+message ActiveGroupInfo {
+    repeated PlayerActiveTaskInfo task_infos = 1;
+    repeated uint32 reward_ids = 2;
+    optional uint32 active_value = 3;
+    optional uint32 task_type = 4;
+}
+message PlayerActiveInfo {
+    repeated ActiveGroupInfo group_infos = 1;
+}
+message FishPond {
+    optional uint32 pond_id = 1;
+    optional uint32 count = 2;
+    optional uint32 refresh_time = 3;
+}
+message SwitchSvrInfo {
+    optional uint32 map_id = 1;
+    optional uint32 creator_id = 2;
+    optional int32 posX = 4;
+    optional int32 posY = 5;
+    optional int32 posZ = 6;
+    optional int32 angle = 7;
+    optional uint32 seqNo = 8;
+}
+message NewGeneInfo {
+    optional uint32 pos = 1;
+    optional uint32 gene_id = 2;
+    optional uint32 gene_lv = 3;
+}
+message PetAttr {
+}
+message PetSimpleInfo {
+    optional bytes pet_name = 1;
+    optional uint32 config_id = 2;
+    optional uint32 lv = 3;
+    optional FightAttr comprehension = 5;
+    optional uint32 rank = 6;
+    optional uint64 guid = 7;
+    repeated NewGeneInfo gene_infos = 8;
+    optional uint32 gene_state = 9;
+    optional uint32 ur_pos = 10;
+    optional uint32 feature = 11;
+}
+message PetBIBaseInfo {
+    optional uint64 guid = 1;
+    optional uint32 config_id = 2;
+    optional uint32 lv = 3;
+}
+message ComplexShowInfo {
+    repeated PetSimpleInfo show_pets = 1;
+}
+message StoryInfos {
+    repeated uint32 infos = 2;
+}
+message SimpleItem {
+    optional uint32 item_id = 1;
+    optional uint32 item_num = 2;
+}
+message Tower {
+    optional uint32 tower_id = 1;
+    optional uint32 tower_time = 2;
+    repeated uint32 first_reward_record = 3;
+}
+message TowerScore {
+    optional uint32 cur_score = 1;
+    optional uint32 score_time = 2;
+    repeated uint32 score_reward_record = 3;
+}
+message PamiMailLetterText {
+    optional uint32 text_id = 1;
+    optional uint32 record = 2;
+    optional uint32 timestamp = 3;
+    optional bool reward = 4;
+    optional bool is_read = 5;
+    repeated ExtraInfo args = 6;
+}
+message PlayerRedPointBase {
+    optional uint32 id = 1;
+    repeated uint32 sub_id = 2;
+}
+message PlayerOnlineDataGetRsp {
+    optional uint32 pid = 1;
+    optional uint32 gsid = 2;
+    optional uint32 isOnline = 3;
+    optional uint32 zoneId = 4;
+    optional uint32 ban_time = 5;
+}
+message PetSkillInfo {
+    optional uint32 skill_id = 1;
+    optional uint32 skill_lv = 2;
+    optional uint32 skill_slot = 3;
+    optional uint32 type = 4;
+}
+message NoticeMeta {
+    optional string title = 1;
+    optional string content = 2;
+    optional string language = 3;
+}
+message PaomaLightNotice {
+    repeated NoticeMeta meta = 1;
+    optional uint32 begin_time = 2;
+    optional uint32 end_time = 3;
+}
+message AnnounceNotice {
+    repeated NoticeMeta meta = 1;
+    optional int64 publish_time = 2;
+    optional uint32 order_id = 3;
+    optional uint32 tab_id = 4;
+    optional int64 end_time = 5;
+    optional uint32 id = 6;
+    optional uint32 type = 7;
+    optional string jump_id = 8;
+    optional bool hide = 9;
+    optional uint32 showPosition = 10;
+    repeated uint32 device_type = 11;
+    optional uint32 priority = 12;
+    optional uint32 showPositionScrolling = 13;
+    optional string channel = 14;
+}
+message AnnounceNoticeScrolling {
+    repeated NoticeMeta meta = 1;
+    optional int64 publish_time = 2;
+    optional uint32 order_id = 3;
+    optional uint32 tab_id = 4;
+    optional int64 end_time = 5;
+    optional uint32 id = 6;
+    optional uint32 type = 7;
+    optional string jump_id = 8;
+    optional bool hide = 9;
+    optional uint32 showPosition = 10;
+    repeated uint32 device_type = 11;
+    optional uint32 priority = 12;
+    optional uint32 showPositionScrolling = 13;
+    optional string channel = 14;
+}
+message GameSystemInfo {
+    optional uint32 sysId = 1;
+    optional uint32 status = 2;
+    optional string reason = 3;
+}
+message PetEatInfo {
+    optional uint64 pet_guid = 1;
+    optional uint32 last_time = 2;
+    optional uint32 food_id = 3;
+    optional uint32 finish_time = 4;
+}
+message UnitSkillInfo {
+    optional uint32 skill_id = 1;
+    optional uint32 skill_lv = 2;
+    optional uint32 skill_slot = 3;
+    optional uint32 type = 4;
+}
+message PhotoGraphTempletInfo {
+    optional uint32 id = 1;
+    optional string name = 2;
+    optional bytes url = 3;
+    optional string arg = 4;
+}
+message ChatEmojiInfo {
+    optional uint32 id = 1;
+}
+message AllRouletteInfo {
+    repeated RouletteInfo roulettes = 1;
+}
+message RouletteInfo {
+    optional uint32 type = 1;
+    repeated uint64 guid = 2;
+    optional uint32 pos = 3;
+}
+message NoviceTaskInfo {
+    optional uint32 task_id = 1;
+    optional uint32 task_value = 2;
+    optional uint32 task_status = 3;
+}
+message NoviceTaskGroupInfo {
+    optional uint32 group_id = 1;
+    repeated NoviceTaskInfo tasks = 2;
+    optional bool finished = 3;
+}
+message RechargeOrderInfo {
+    optional string game_order_no = 1;
+    optional string product_id = 2;
+    optional uint32 amount = 3;
+    optional uint32 status = 4;
+}
+message CollectToolItem {
+    optional uint32 guid = 1;
+    optional uint32 id = 2;
+    optional uint32 endurance = 3;
+    optional bool select = 4;
+}
+message NullProtoMsg {
+}
+message CSProtoChangeNameOpenRsp {
+    optional bool is_open = 1;
+}
+message SCGMSystemCloseInfo {
+}
+message AllSnackBagInfo {
+    repeated SnackBag bags = 1;
+}
+message SnackBag {
+    optional uint32 type = 1;
+    repeated SnackSlot items = 2;
+    optional uint32 num = 3;
+}
+message SnackSlot {
+    optional uint32 item_id = 1;
+    optional uint32 item_num = 2;
+}
+message AceData {
+    optional bytes data = 1;
+    optional bool game_client_enable = 2;
+}
+message AceAccountInfo {
+    optional string open_id = 1;
+    optional uint32 plat_id = 2;
+    optional uint32 game_id = 3;
+    optional uint32 player_id = 4;
+}
+message AceAntiData1 {
+    optional AceAccountInfo account_info = 1;
+    optional bytes data = 2;
+}
+message AceAntiData2 {
+    optional AceAccountInfo account_info = 1;
+    optional bytes data = 2;
+}
+message AceAntiData4 {
+    optional AceAccountInfo account_info = 1;
+    optional bytes data = 2;
+}
+message AceAntiData4Result {
+    optional string open_id = 1;
+    optional uint32 player_id = 2;
+    optional bytes data = 3;
+}
+message AceLightFeature {
+    optional string open_id = 1;
+    optional uint32 player_id = 2;
+    optional bytes data = 3;
+}
+message SpawnerInteractInfo {
+    optional uint32 id = 1;
+    optional uint32 count = 2;
+}
+message HeroSendGiftInfo {
+    optional uint32 gift_num = 1;
+    optional uint32 last_time = 2;
+}
+message ReadHandbookInfo {
+    optional uint32 book_id = 1;
+    optional uint32 book_state = 2;
+}
+message SCReadHandbookInfoSync {
+    repeated ReadHandbookInfo infos = 1;
+    optional uint32 send_type = 2;
+}
+message ReadHandbookGet {
+    optional uint32 book_id = 1;
+    optional uint32 get_type = 2;
+}
+message ReadHandbookId {
+    repeated uint32 book_id = 1;
+}
+message HomeGlobalBonusInfo {
+    required uint32 type = 1;
+    required uint32 level = 2;
+    required uint64 timestamp = 3;
+}
+message CSHomeGlobalBonusUpgrade {
+    required uint32 type = 1;
+}
+message SCHomeGlobalBonusInfo {
+    repeated HomeGlobalBonusInfo infos = 1;
+    optional uint32 send_type = 2;
+}
+message MedicineInfo {
+    required uint32 type = 1;
+    required uint32 cd_expire = 2;
+}
+message SCMedicineInfoSync {
+    repeated MedicineInfo infos = 1;
+    optional uint32 send_type = 2;
+}
+message WorldDifficultyRedPoint {
+    optional uint32 difficulty = 1;
+    optional bool redpoint = 2;
+}
+message WorldDifficultyInfo {
+    optional uint32 map_id = 1;
+    optional uint32 difficulty = 2;
+    repeated WorldDifficultyRedPoint redpoints_info = 3;
+}
+message SCWorldDifficultyInfoSync {
+    repeated WorldDifficultyInfo infos = 1;
+    optional uint32 send_type = 2;
+}
+message ReputationInfo {
+    required uint32 rep_id = 1;
+    required uint32 value = 2;
+    required uint32 level = 3;
+}
+message Kickout {
+    optional uint32 uid = 1;
+    optional uint32 timestamp = 2;
+    optional string reason = 3;
+}
+message SCReputationInfoSync {
+    repeated ReputationInfo infos = 1;
+    optional uint32 send_type = 2;
+}
+message SocialWheel {
+    optional uint32 index = 1;
+    optional uint32 id = 2;
+}
+message SocialEmoticons {
+    optional uint32 id = 1;
+}
+message SCPlayerSocialEmoticonsSync {
+    repeated SocialEmoticons infos = 1;
+    repeated SocialWheel social_wheel = 2;
+    optional uint32 cur_emoticons_id = 3;
+}
+message CSUpdateEmoticonsWheel {
+    repeated SocialWheel wheel_data = 1;
+    optional bool del_all = 2;
+}
+message SCNotifyEmoticon {
+    optional uint32 player_id = 1;
+    optional uint32 emoticons_id = 2;
+}
+message CrossStringReq {
+    optional string data = 1;
+}
+message CrossStringRsp {
+    optional string data = 1;
+}
+message GeneralDirtyCheckInfo {
+    optional string data_info = 1;
+}

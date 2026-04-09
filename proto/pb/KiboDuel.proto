@@ -1,0 +1,151 @@
+syntax = "proto2";
+package cs;
+
+option go_package = "GmServer/bridge/csproto;csproto";
+
+import "CommonMsg.proto";
+import "ExOptions.proto";
+import "Pet.proto";
+import "Battle.proto";
+
+enum KiboDuelType {
+    KDuelTypeNpc = 1;
+    KDuelTypeLevels = 2;
+}
+enum KiboDuelStatus {
+    KDS_NORMAL = 0;
+    KDS_QUIT = 1;
+    KDS_START = 2;
+    KDS_AGOING = 3;
+    KDS_END = 4;
+}
+message PetDuelInfo {
+    optional uint32 use_slot = 1;
+    repeated PetDuelGroupInfo groups = 2;
+}
+message PetDuelGroupInfo {
+    optional uint32 slot = 1;
+    repeated TrialPet pet_guids = 2;
+    optional uint64 hero = 3;
+    repeated UnitSkillInfo hero_skills = 4;
+    optional uint32 duel_id = 5;
+    optional uint32 index = 6;
+}
+message PetDuelAreaInfo {
+    optional uint32 id = 1;
+    optional uint32 exp = 2;
+    optional uint32 lvl = 3;
+    repeated uint32 got_lvl_reward = 4;
+}
+message PlayerKiboDuelBase {
+    optional uint32 use_slot = 1;
+    repeated PetDuelGroupInfo groups = 2;
+    repeated PetDuelRecordInfo records = 3;
+    optional MoveInfo last_position = 4;
+    repeated PetDuelAreaInfo area_infos = 5;
+    repeated uint32 unlock_skills = 6;
+}
+message KiboDuelFightingInfo {
+    optional uint32 id = 1;
+    optional uint32 start_time = 2;
+    repeated uint32 challenge_values = 3;
+    optional uint32 status = 4;
+    optional uint32 star = 5;
+    optional uint32 end_time = 6;
+    optional uint32 activity_id = 7;
+    optional uint32 kibo_duel_uid = 8;
+}
+message PetDuelRecordInfo {
+    optional uint32 id = 1;
+    optional uint32 star = 2;
+    optional uint64 success_time = 3;
+}
+message KiboDuleOpRecord {
+    optional uint64 uuid = 1;
+    optional uint32 conf_id = 2;
+    optional uint64 ts = 3;
+}
+message KiboDuelDamagRecord {
+    optional uint64 uuid = 1;
+    optional uint32 conf_id = 2;
+    optional uint32 damage = 3;
+    optional uint32 take_damage = 4;
+    optional uint32 heal = 5;
+}
+message KiboDuelPlayerSkillCastRecord {
+    optional uint32 skill_id = 1;
+    optional uint64 ts = 2;
+}
+message KiboDuelCostChangeRecord {
+    optional uint32 value = 1;
+    optional uint64 ts = 2;
+}
+message KiboDuelStat {
+    repeated KiboDuleOpRecord summon_record = 1;
+    repeated KiboDuleOpRecord death_record = 2;
+    repeated KiboDuelDamagRecord damage_record = 3;
+    repeated KiboDuelPlayerSkillCastRecord play_skill_record = 4;
+    repeated KiboDuelCostChangeRecord cost_change_record = 5;
+}
+message CSKiboDuelFinish {
+    optional uint32 status = 1;
+    optional uint32 time = 2;
+    optional KiboDuelStat stat = 3;
+    optional KiboDuelStat ai_stat = 4;
+}
+message CSKiboDuelQuit {
+    optional uint32 time = 1;
+    optional KiboDuelStat stat = 2;
+    optional KiboDuelStat ai_stat = 3;
+}
+message KiboDuelPetAttrInfo {
+    optional TrialPet pet_guid = 1;
+    optional FightAttr attrs = 2;
+    repeated HeroAttrModuleInfo skills = 3;
+    repeated uint32 gene_list = 8;
+    optional uint32 special = 4;
+    optional uint32 pet_conf_id = 5;
+    optional uint32 pet_lv = 6;
+    optional uint32 pet_color = 7;
+}
+message KiboDuelHeroAttrInfo {
+    optional uint64 hero_guid = 1;
+    optional FightAttr attrs = 2;
+    repeated UnitSkillInfo skills = 3;
+    optional uint32 hero_conf_id = 4;
+    optional uint32 hero_lv = 5;
+    optional uint32 hero_star = 6;
+}
+message KiboDuelAllPetAttrInfo {
+    repeated KiboDuelPetAttrInfo infos = 1;
+    optional KiboDuelHeroAttrInfo hero_info = 2;
+}
+message RobotSummonData {
+    optional uint32 conf_id = 1;
+    optional uint32 level = 2;
+}
+message CSKiboSummonReq {
+    optional uint64 pet_guid = 1;
+    optional Position pos = 2;
+    optional int32 angle = 3;
+    optional uint64 source_pet_guid = 4;
+    optional RobotSummonData robot_data = 5;
+    optional uint64 del_guid = 6;
+}
+message CSKiboSummonSyncInfo {
+    optional KiboEntityInfo kibo = 1;
+}
+message KiboDuelActInfo {
+    optional uint32 activity_id = 1;
+    optional uint32 kibo_duel_uid = 2;
+}
+message KiboDuelExtraInfo {
+    optional KiboDuelActInfo activity_info = 1;
+}
+message CSKiboDuelGetAreaReward {
+    optional uint32 area = 1;
+    optional uint32 lvl = 2;
+}
+message CSKiboDuelBTTreeRunning {
+    repeated uint64 guids = 1 [packed = true];
+}

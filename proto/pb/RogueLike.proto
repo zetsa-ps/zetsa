@@ -1,0 +1,218 @@
+syntax = "proto2";
+package cs;
+
+option go_package = "MicroServices/core/rpc";
+
+import "ExOptions.proto";
+import "WorldMap.proto";
+import "CommonMsg.proto";
+import "Pet.proto";
+import "Battle.proto";
+import "CSCore.proto";
+
+enum RogueGraphNodeType {
+    RGNT_NORMAL = 0;
+    RGNT_BEGIN = 1;
+    RGNT_END = 2;
+}
+enum RogueNodeType {
+    RGT_SHOP = 0;
+    RGT_BATTLE = 1;
+    RGT_RELEX = 2;
+    RGT_CONDITION = 3;
+    RGT_RANDOM = 4;
+    RGT_NODEGROUP = 5;
+}
+enum RogueDungeonState {
+    RDS_NONE = 0;
+    RDS_BEFORE = 1;
+    RDS_CHOSENB = 2;
+    RDS_AFTER = 3;
+    RDS_CHOSENA = 4;
+}
+enum ENUM_ROGUELIKE_EVENT_STATUS_TYPE {
+    eROGUELIKE_ES_TYPE_NONE = 0;
+    eROGUELIKE_ES_TYPE_RUNNING = 1;
+    eROGUELIKE_ES_TYPE_SUCCESS = 2;
+}
+enum ENUM_ROGUELIKE_EVENT_EFFECT_TYPE {
+    eROGLK_EFCT_NONE = 0;
+    eROGLK_EFCT_ROUND_ITEM_NUM = 1;
+    eROGLK_EFCT_ROUND_DRAGON_ACTIVE = 2;
+    eROGLK_EFCT_SHOP_DISCOUNT = 3;
+    eROGLK_EFCT_ADD_ENEMY_BUFF = 4;
+    eROGLK_EFCT_MAX = 20;
+}
+enum ENUM_ROGUELIKE_EVENT_TYPE {
+    eROGLK_ET_NONE = 0;
+    eROGLK_ET_ENTER_BATTLE = 1;
+    eROGLK_ET_RAND_EVENT = 2;
+    eROGLK_ET_RAND_WEIGHT_EVENT = 3;
+    eROGLK_ET_ROUND_ITEM_NUM = 4;
+    eROGLK_ET_ROUND_DRAGON_ACTIVE = 5;
+    eROGLK_ET_HAVE_CARP_CURRENCY_NUM = 6;
+    eROGLK_ET_RAND_UNACTIVE_DRAGON_GIVE_CARP = 7;
+    eROGLK_ET_RAND_GIVE_DRAGON = 8;
+    eROGLK_ET_RAND_GIVE_DRAGON_SELECT = 9;
+    eROGLK_ET_RAND_LOSE_DARGON = 10;
+    eROGLK_ET_RAND_LOSE_DARGON_SELECT = 11;
+    eROGLK_ET_RAND_GIVE_QUALITY_CARP = 12;
+    eROGLK_ET_RAND_GIVE_QUALITY_CARP_SELECT = 13;
+    eROGLK_ET_RAND_LOSE_QUALITY_CARP = 14;
+    eROGLK_ET_RAND_LOSE_QUALITY_CARP_SELECCT = 15;
+    eROGLK_ET_UNACTIVE_DRAGON_RAND_GIVE_CARP = 16;
+    eROGLK_ET_GIVE_CURRENCY = 17;
+    eROGLK_ET_LOSE_CURRENCY = 18;
+    eROGLK_ET_SHOP_DISCOUNT = 19;
+    eROGLK_ET_ADD_BUFF_TOME = 20;
+    eROGLK_ET_ADD_BUFF_TOENEMY = 21;
+    eROGLK_ET_MAX = 30;
+}
+message NodeData {
+    optional uint32 node_uid = 1;
+    optional uint32 node_id = 2;
+    optional uint32 dungeon_id = 3;
+    repeated uint32 pre_nodes = 4;
+    repeated uint32 next_nodes = 5;
+    optional uint32 state = 6;
+    optional RogueDungeonState dungeon_state = 7;
+}
+message GraphData {
+    optional uint32 rogue_id = 1;
+    optional uint32 graph_id = 2;
+    optional uint32 curr_uid = 3;
+    optional uint32 begin_uid = 4;
+    optional uint32 end_uid = 5;
+    repeated NodeData node_datas = 6;
+    optional uint32 level = 7;
+}
+message RogueLikeDragonInfo {
+    optional uint32 dragon_id = 1;
+    optional bool is_active = 2;
+}
+message RogueLikeCurrency {
+    optional uint32 currency_id = 1;
+    optional uint32 currency_num = 2;
+}
+message CarpDragonRewardCell {
+    optional uint32 id = 1;
+    optional uint32 type = 2;
+}
+message RogueLikeSelectRewardCache {
+    repeated CarpDragonRewardCell add_rewards = 1;
+    repeated CarpDragonRewardCell remove_rewards = 2;
+    optional bool is_event_running = 3;
+}
+message RogueLikeCarpDragonData {
+    repeated uint32 carp_ids = 1;
+    repeated RogueLikeDragonInfo dragons = 2;
+    repeated RogueLikeCurrency currencys = 3;
+    optional RogueLikeSelectRewardCache select_cache = 4;
+}
+message SCRogueLikeCarpDragonSync {
+    optional RogueLikeCarpDragonData carp_dragon_data = 1;
+}
+message SCRogueLikeCarpDragonReward {
+    repeated CarpDragonRewardCell rewards = 1;
+    optional int32 select_flag = 2;
+}
+message CSRogueLikeCarpDragonRwdSelectReq {
+    optional uint32 id = 1;
+    optional uint32 type = 2;
+}
+message SCRogueLikeCarpDragonRwdSelectRsp {
+    optional uint32 id = 1;
+    optional uint32 type = 2;
+    optional int32 err_code = 3;
+    optional bool is_event_running = 4;
+    optional bool is_remove = 5;
+}
+message RogueLikeEventEfctInfo {
+    optional uint32 effect_type = 1;
+    repeated int32 effect_params = 2;
+    optional int32 pros_param = 3;
+}
+message RogueLikeEventEffects {
+    repeated RogueLikeEventEfctInfo effect_list = 1;
+}
+message RogueLikeEvent {
+    optional uint32 cur_gatherid = 1;
+    optional uint32 cur_event_id = 2;
+    optional uint32 cur_event_efct_idx = 3;
+    repeated uint32 cur_finished_eventefctid_list = 4;
+    optional uint32 cur_emergencies_gather_id = 5;
+    repeated uint32 finished_gatherids = 9;
+    optional RogueLikeEventEffects effects = 10;
+}
+message SCRogueLikeEventSync {
+    optional RogueLikeEvent event_data = 1;
+}
+message CSRogueLikeEventSelectReq {
+    optional uint32 gather_id = 1;
+    optional uint32 event_id = 2;
+}
+message SCRogueLikeEventSelectRsp {
+    repeated CarpDragonRewardCell add_rewards = 1;
+    repeated CarpDragonRewardCell remove_rewards = 2;
+    optional int32 select_flag = 3;
+    repeated RogueLikeCurrency add_currencys = 4;
+    repeated RogueLikeCurrency remove_currencys = 5;
+    optional uint32 effect_case_type = 6;
+    optional uint32 effect_case_id = 7;
+    optional uint32 event_status = 8;
+}
+message CSRogueLikeEventTriggerNextReq {
+    optional uint32 event_id = 1;
+}
+message SCRogueGraphInfoSync {
+    optional GraphData graph_data = 1;
+}
+message SCRogueGraphExtraInfoSync {
+    optional uint32 rogue_id = 1;
+    optional uint32 graph_id = 2;
+    optional uint32 max_difficulty = 3;
+    repeated uint32 rogue_ids = 4;
+    optional uint32 state = 5;
+}
+message SCRogueLikeHeroInfoSync {
+    repeated HeroItemInfo heros = 2;
+    repeated PetbaseInfo pets = 3;
+}
+message CSRogueLikeCreateRogue {
+    optional uint32 rogue_id = 1;
+    optional uint64 control = 2;
+    repeated CSWearPet heros = 3;
+    optional bool force = 4;
+}
+message CSRogueLikeEnterRoom {
+    optional uint32 node_uid = 1;
+}
+message CSRogueLikeCreateGroup {
+    repeated uint64 hero_uids = 1;
+}
+message SCRogueLikeShopInfo {
+    repeated uint32 carp_ids = 1;
+    repeated uint32 buy_carps = 2;
+}
+message CSRogueLikeBuy {
+    repeated uint32 carp_ids = 1;
+}
+message SCRogueLikeBuy {
+    repeated uint32 carp_ids = 1;
+}
+message SCRogueLikeDungeonEndSync {
+    optional uint32 type = 1;
+    optional uint32 succ = 2;
+    optional uint32 integral = 3;
+    optional Rewards rewards = 4;
+    repeated uint32 carps = 5;
+    repeated uint32 dragons = 6;
+}
+message RogueLikeBox {
+    optional uint32 box_id = 1;
+    optional uint32 box_lv = 2;
+    optional uint32 event_id = 3;
+}
+message SCRogueLikeBoxSync {
+    repeated RogueLikeBox boxes = 1;
+}

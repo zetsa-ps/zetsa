@@ -1,0 +1,26 @@
+syntax = "proto2";
+package cs;
+
+option go_package = "GmServer/bridge/csproto;csproto";
+
+enum GMMaskType {
+    GMMaskType_NoCD = 0;
+    GMMaskType_NoDmg = 1;
+    GMMaskType_DebugInfo = 2;
+    GMMaskType_Wudi = 3;
+    GMMaskType_Dali = 4;
+}
+message GMCommand {
+    optional bytes command = 1;
+    repeated bytes args = 2;
+}
+message GMCommands {
+    repeated GMCommand cmds = 1;
+}
+message GMCommandSync {
+    optional bytes result = 1;
+}
+message ServerDebugInfo {
+    optional uint64 time = 1;
+    optional string info = 2;
+}

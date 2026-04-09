@@ -1,0 +1,6 @@
+.{
+    .{ "20_default_package_1273906.hash", "b6e1b54252cc0b91bb13894612502b9d" },
+    .{ "20_raw_base_package_1273906.hash", "b0e7d2aa9198e828ef5fd313308bb164" },
+    .{ "20_raw_nostreaming_package_1273906.hash", "281a89820f6ca84f9116e30c7410af29" },
+    .{ "20_raw_streaming_package_1273906.hash", "a8ec466bf27b5de8ce05859e6637c6c5" },
+}

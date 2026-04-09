@@ -1,0 +1,1170 @@
+syntax = "proto2";
+package cs;
+
+option go_package = "GmServer/bridge/csproto;csproto";
+
+import "CommonMsg.proto";
+import "ExOptions.proto";
+
+enum BattleType {
+    BT_SINGLE = 0;
+    BT_TEAM = 1;
+}
+enum BattleEntryType {
+    BET_COMPAIGN = 1;
+    BET_ROUGUE = 2;
+    BET_TOWER = 3;
+    BET_INTERIMER = 4;
+    BET_BATTLE_COMPAIGN = 5;
+}
+enum BattleEnemyLevelPolicyType {
+    BELPT_WORLD_DIFFICULT = 1;
+    BELPT_FIX = 2;
+    BELPT_DUNGEON = 3;
+    BELPT_TASK = 4;
+}
+enum WorldMapActionType {
+    WMAT_JUMP = 1;
+    WMAT_DASH = 2;
+    WMAT_SKILL = 3;
+}
+enum FightObjType {
+    FO_None = 0;
+    FO_FightObj = 512;
+    FO_HeroBase = 1024;
+    FO_Hero = 1;
+    FO_Trial_Hero = 16;
+    FO_PetBase = 2048;
+    FO_Pet = 2;
+    FO_Trial_Pet = 256;
+    FO_MonsterBase = 4096;
+    FO_Monster = 4;
+    FO_Task_Monster = 8;
+    FO_Puzzle_Monster = 64;
+    FO_Puzzle_Obj = 32;
+    FO_Tranform = 128;
+    FO_Transform_Pet = 8192;
+    FO_KiboDuel_Trial_Pet = 16384;
+    FO_Bullet = 32768;
+    FO_Summoner = 65536;
+    FO_Rogue_Hero = 131072;
+    FO_Rogue_Pet = 262144;
+    FO_KiboDuel_Pet = 524288;
+    FO_KiboDuel_Tower = 1048576;
+    FO_KiboDuel_ThisClam = 2097152;
+    FO_Bot_Hero = 4194304;
+    FO_Player = 8388608;
+    FO_MobMonster = 16777216;
+    FO_MapItem = 33554432;
+}
+enum FightObjSourceType {
+    FOST_WORLD = 0;
+    FOST_TASK = 1;
+}
+enum SkillResultType {
+    SRT_DAMAGE = 1;
+    SRT_HEAL = 2;
+    SRT_BUFF = 3;
+}
+enum FightObjState {
+    FOS_Normal = 1;
+    FOS_Fight = 2;
+    FOS_Reset = 3;
+}
+enum HeroAttrModuleType {
+    HAMT_HERO_BASIC = 0;
+    HAMT_SOULESSENCE = 1;
+    HAMT_ORNAMENT = 2;
+    HAMT_WORLD_BUFF = 3;
+    HAMT_PET_INHERENT = 4;
+    HAMT_PET_GEN = 5;
+    HAMT_PET_SPEED = 6;
+    HAMT_ELEMENT = 7;
+    HAMT_GLOBAL_BONUS = 8;
+}
+enum ModuleGamingType {
+    MGT_WORLD_BATTLE = 0;
+    MGT_KIBO_DUEL = 1;
+}
+enum BuffOperator {
+    BuffOpe_Add = 1;
+    BuffOpe_Del = 2;
+    BuffOpe_Chg = 3;
+    BuffOpe_RND = 4;
+    BuffOpe_LOG = 5;
+    BuffOpe_CleanData = 6;
+    BuffOpe_Combine = 7;
+}
+enum SkillVerifyType {
+    SkillVerifyType_None = 0;
+    SkillVerifyType_Skill = 1;
+    SkillVerifyType_Elem = 2;
+    SkillVerifyType_Bullet = 3;
+    SkillVerifyType_Summon = 4;
+    SkillVerifyType_Behavior = 5;
+    SkillVerifyType_System = 6;
+    SkillVerifyType_GM = 7;
+}
+enum FightFinishStatus {
+    FFS_Success = 0;
+    FFS_Fail = 1;
+    FFS_Escape = 2;
+    FFS_Timeout = 3;
+}
+enum FightRewardReason {
+    FRR_Kill = 0;
+    FRR_Catch = 1;
+}
+enum HeroBattleInfoSyncReason {
+    HBISR_COMMON = 0;
+    HBISR_TRANS_POINT = 1;
+    HBISR_ACED = 2;
+    HBISR_CHARGE = 3;
+    HBISR_DUNGEON_ENTRUST = 4;
+    HBISR_FSM_FIGHT_TO_NORMAL = 5;
+}
+enum GetCatchPetInfoReason {
+    GCPIR_SCAN = 1;
+    GCPIR_CATCH = 2;
+}
+enum BattleSkillOp {
+    RELEASE = 1;
+    CHANGE_CD = 2;
+    STOP = 3;
+    INTERUPT = 4;
+}
+enum BattleEntityOp {
+    ADD = 1;
+    DEAD = 2;
+    DEL = 3;
+}
+enum SummonType {
+    monster = 1;
+    item = 2;
+    independent = 3;
+    kibo_pet = 4;
+    kibo_monster = 5;
+}
+enum BulletActionType {
+    ChangeMoveType = 1;
+    PlayEffect = 2;
+    ChangeTarget = 3;
+    Dead = 4;
+}
+enum EEntityScene {
+    None = 0;
+    Battle = 1;
+    World = 2;
+    BattlePerform = 3;
+}
+message BattleContext {
+    optional uint32 conf_id = 1;
+    optional uint32 type = 2;
+    optional uint32 entry = 3;
+    optional bool in_battle = 4;
+    optional uint32 battle_id = 5;
+    optional uint32 tower_id = 7;
+    optional uint32 order = 8;
+    optional uint32 start_time = 9;
+    optional bool backstab = 10;
+    optional uint32 rogue = 11;
+    optional uint32 battle_campaign_obj = 12;
+}
+message FightSoulEssenceInfo {
+    optional uint32 wid = 1;
+    optional FightAttr attrs = 2;
+    optional uint32 pos = 3;
+    optional uint32 wguid = 4;
+    optional uint32 level = 5;
+    optional uint32 advance = 6;
+    optional uint32 rank = 7;
+    optional HeroSkillInfos skills = 8;
+}
+message FightWeaponAppInfo {
+    optional uint32 id = 1;
+}
+message FightOrnamentInfo {
+    optional uint32 id = 1;
+    optional FightAttr attrs = 2;
+    optional FightAttr main_attrs = 3;
+}
+message FightOrnamentSuitInfo {
+    optional FightAttr attrs = 1;
+    optional HeroSkillInfos skills = 2;
+}
+message FightHeroInfo {
+    optional uint32 hero_guid = 1;
+    optional uint32 hero_conf_id = 2;
+    optional FightSoulEssenceInfo winfo = 3;
+    optional FightPetInfo pinfo = 4;
+    optional uint32 strategy = 5;
+    optional FightAttr attrs = 6;
+    optional uint32 hp = 7;
+    optional uint32 sp = 8;
+    optional uint32 lv = 9;
+    optional uint32 rank = 10;
+    optional uint32 star = 11;
+    optional WardrobeInfo wardrobeinfos = 12;
+    repeated FightOrnamentInfo oinfo = 13;
+    optional FightWeaponAppInfo wainfo = 14;
+    optional FightOrnamentSuitInfo suitSkills = 15;
+    repeated uint32 star_gifts = 16;
+    optional uint32 favor_lv = 17;
+    optional HeroSkillInfos skills = 18;
+    optional uint32 time = 19;
+    optional FightAttr buffs = 20;
+}
+message FightPetInfo {
+    optional bytes pet_name = 1;
+    optional uint32 lv = 2;
+    optional uint32 config_id = 3;
+    optional uint32 rank = 4;
+    repeated PetSkillInfo inherent_skills = 5;
+    repeated HeroSkillInfo gene_skills = 6;
+    optional FightAttr attrs = 7;
+    optional uint32 guid = 8;
+}
+message FightEntity {
+    optional uint32 pid = 1;
+    repeated FightHeroInfo heros = 2;
+    optional uint32 control = 3;
+}
+message FightInfo {
+    repeated FightEntity entities = 1;
+}
+message CSBattleCreate {
+    optional uint32 conf_id = 1;
+    optional uint32 debug_arg = 2;
+    optional uint32 type = 4;
+    optional uint32 entry = 5;
+    optional uint32 tower_id = 7;
+    optional uint32 order = 8;
+    optional bool backstab = 9;
+    optional uint32 rogue = 10;
+    optional uint32 battle_campaign_obj = 11;
+}
+message SCBattleCreate {
+    optional FightInfo bt_info = 1;
+    optional uint32 morale = 2;
+    optional uint32 total_morale = 3;
+    optional uint32 battle_conf_id = 4;
+    repeated BattleFormation battle_fomations = 6;
+    optional uint32 type = 7;
+    optional uint32 battle_id = 8;
+    optional bytes ip = 9;
+    optional uint32 port = 10;
+    optional uint32 multi_player_conf_id = 11;
+    optional uint32 entry = 12;
+    optional uint32 backstab = 13;
+    optional uint32 rogue = 14;
+}
+message CSBattleFin {
+    optional uint32 res = 1;
+    repeated GroupHero heros = 2;
+    repeated BattleConditionKill kill_cond = 10;
+}
+message BattleConditionKill {
+    optional uint32 id = 1;
+    optional uint32 num = 2;
+}
+message SCBattleFin {
+    optional uint32 res = 1;
+    optional Rewards items = 2;
+    optional uint32 player_exp = 3;
+    repeated uint32 conds = 4;
+    optional uint32 mvp_guid = 5;
+    optional uint32 star = 6;
+    optional uint32 morale = 7;
+    optional uint32 total_morale = 8;
+    optional uint32 item_id = 9;
+}
+message ObjKey {
+    optional uint32 obj_id = 1;
+    optional uint32 obj_index = 2;
+    optional uint32 group_id = 3;
+    optional uint32 task_id = 4;
+}
+message ObjGroupKey {
+    optional uint32 obj_id = 1;
+    optional uint32 battle_group_id = 2;
+    optional uint32 task_id = 3;
+    optional uint32 group_type = 4;
+}
+message CatchPetTimes {
+    optional uint32 catch_color = 1;
+    optional uint32 catch_times = 2;
+    optional uint32 player_id = 3;
+}
+message FObjInfo {
+    optional uint64 uid = 1;
+    optional FightObjType obj_type = 2;
+    optional uint32 guid = 3;
+    optional uint32 id = 4;
+    optional uint32 level = 5;
+    optional ObjKey obj_key = 6;
+    optional uint32 enemy_pack = 7;
+    optional uint32 time = 8;
+    optional uint32 hp = 9;
+    optional uint32 sp = 10;
+    repeated SkillCD skills = 11;
+    repeated BuffInfo buffs = 12;
+    optional MoveInfo move = 13;
+    optional uint32 special = 14;
+    optional BreakVal breakVal = 15;
+    optional uint32 player_id = 16;
+    optional uint32 color = 17;
+    optional uint32 catch_pet_seed = 18;
+    repeated CatchPetTimes catch_pet_times = 19;
+    optional uint32 difficulty_level = 20;
+    optional uint32 pet_len_id = 21;
+    optional uint32 mob_cfg_id = 22;
+    optional uint32 area_id = 23;
+}
+message CSFightInfo {
+    repeated ObjGroupKey objs = 1;
+    repeated ObjKey obj_keys = 2;
+}
+message SCFightInfo {
+    optional uint32 battle_id = 1;
+    repeated FObjInfo objs = 2;
+    repeated ObjKey obj_keys = 3;
+    optional uint32 fightStart = 4;
+    optional uint32 ai_player_id = 5;
+}
+message FightStateInfo {
+    optional uint64 uuid = 1;
+    optional uint32 state = 2;
+    optional uint32 ai_player_id = 3;
+}
+message PlayerStateInfo {
+    optional uint32 state = 1;
+}
+message CSFightState {
+    repeated FightStateInfo objs_state = 1;
+    optional PlayerStateInfo player_state = 2;
+}
+message HatredData {
+    optional uint64 id = 1;
+    repeated uint64 target_obj_ids = 2;
+    repeated uint32 player_obj_ids = 3;
+}
+message CSObjHatredChange {
+    optional bool inc = 1;
+    optional HatredData info = 2;
+}
+message SCObjHatredChange {
+    optional bool inc = 1;
+    optional HatredData info = 2;
+}
+message CSHatredReset {
+    optional bool is_player = 1;
+    optional uint64 obj_id = 2;
+}
+message SCHatredReset {
+    optional bool is_player = 1;
+    optional uint64 obj_id = 2;
+}
+message CSHatredResetToHome {
+    optional uint64 obj_id = 1;
+}
+message SCHatredResetToHome {
+    optional uint64 obj_id = 1;
+}
+message SCFightState {
+    repeated FightStateInfo objs_state = 1;
+}
+message SCFightBeginTime {
+    optional uint64 uuid = 1;
+    optional uint32 begin_time = 2;
+}
+message ShieldInfo {
+    optional uint32 id = 1;
+    optional int32 val = 2;
+}
+message HurtInfo {
+    optional uint64 from_id = 1;
+    optional uint64 tar_id = 2;
+    optional uint32 skill_id = 3;
+    optional sint32 hp_change = 4;
+    optional uint32 cur_hp = 5;
+    optional bool hpLocked = 7;
+    repeated ShieldInfo shield_chg = 8;
+    repeated ShieldInfo shield_cur = 9;
+    optional uint32 element_tempId = 10;
+    optional uint32 cur_phase = 11;
+    optional int32 from_sp = 12;
+    optional int32 tar_sp = 13;
+    optional uint64 element_uniqueId = 14;
+    optional int32 from_hp = 15;
+    optional BattleVerifyInfo verify_info = 16;
+    optional int32 delta_sp = 17;
+}
+message SkillInfo {
+    optional uint32 skill_id = 1;
+    optional sint32 angle = 2;
+    optional sint32 posx = 3;
+    optional sint32 posy = 4;
+    optional sint32 posz = 5;
+    optional int32 slot = 8;
+    optional uint64 begin_time = 9;
+    optional uint64 cd_time_p = 10;
+    optional uint64 lock_id = 11;
+    optional uint32 segment = 12;
+    optional uint32 index = 13;
+    optional uint64 self_cd = 14;
+    optional uint64 public_cd = 15;
+    optional uint64 gcd = 16;
+}
+message SCFightHeroInfoSync {
+    repeated FightHeroInfo heros = 1;
+}
+message HeroAttrSubModuleInfo {
+    optional uint32 sub_module_id = 1;
+    optional FightAttr attrs = 2;
+    repeated UnitSkillInfo skills = 3;
+}
+message HeroAttrModuleInfo {
+    optional uint32 module_type = 1;
+    repeated HeroAttrSubModuleInfo sub_modules = 2;
+}
+message HeroAttrInfo {
+    optional uint64 hero_guid = 1;
+    optional uint32 hero_conf_id = 2;
+    optional uint32 type = 3;
+    repeated HeroAttrModuleInfo modules = 4;
+}
+message PetAttrInfo {
+    optional uint64 guid = 1;
+    optional uint32 conf_id = 2;
+    optional uint32 type = 3;
+    optional uint32 special = 4;
+    optional uint32 color = 5;
+    optional uint32 level = 6;
+    repeated HeroAttrModuleInfo modules = 7;
+}
+message SCHeroAttrInfoSync {
+    repeated HeroAttrInfo heros = 1;
+}
+message CSSkillRelease {
+    optional uint64 unit_id = 1;
+    optional SkillInfo skill = 2;
+}
+message SCSkillRelease {
+    optional uint64 uint_id = 1;
+    optional SkillInfo skill = 2;
+}
+message BufChgInfo {
+    optional BuffOperator op = 1;
+    optional uint64 tar_id = 2;
+    optional BuffInfo buff = 3;
+    optional uint32 clientTmpID = 4;
+    optional uint64 uniqueId = 5;
+    optional uint64 parentUniqueId = 6;
+    repeated uint64 op_params = 7;
+    optional BattleVerifyInfo verify_info = 8;
+}
+message CSBufChange {
+    repeated BufChgInfo chgInfo = 1;
+}
+message SCBufChange {
+    repeated BufChgInfo chgInfo = 1;
+}
+message CSCatchPet {
+    optional uint64 tar_id = 1;
+    optional uint32 item_id = 2;
+    optional uint32 day_weather = 3;
+    optional EntityPosition position = 4;
+}
+message SCCatchPet {
+    optional uint64 tar_id = 1;
+    optional bool success = 2;
+    optional uint64 guid = 3;
+    optional float rand_rate = 4;
+}
+message SCFightFinish {
+    optional uint32 status = 1;
+    optional Rewards rewards = 2;
+}
+message SCFightReward {
+    optional Rewards rewards = 1;
+    optional uint32 reason = 2;
+    optional Rewards element_rewards = 3;
+    optional uint64 obj_id = 4;
+}
+message SPChangeInfo {
+    optional uint32 uid = 1;
+    optional uint32 sp = 2;
+}
+message CSSpChange {
+    repeated SPChangeInfo chg_infos = 1;
+}
+message SCObjDeadNtf {
+    optional uint64 tar_id = 1;
+}
+message BreakVal {
+    optional int32 val = 1;
+    optional uint64 chg_time_p = 3;
+}
+message BreakInfo {
+    optional uint64 tarId = 1;
+    optional BreakVal val = 2;
+}
+message CSFightBreak {
+    repeated BreakInfo infos = 1;
+}
+message SCFightBreak {
+    repeated BreakInfo infos = 1;
+}
+message SCFightSkillNtf {
+    repeated SkillCD skills = 1;
+    repeated BuffInfo buffs = 2;
+}
+message HeroBattleInfo {
+    optional uint64 guid = 1;
+    optional uint32 conf_id = 2;
+    optional uint32 hp = 3;
+    optional uint32 sp = 4;
+    optional uint32 reason = 5;
+}
+message SCHeroBattleInfoSync {
+    optional uint32 pid = 1;
+    repeated HeroBattleInfo infos = 2;
+}
+message ObjBattleInfo {
+    optional uint64 uuid = 1;
+    optional uint32 hp = 3;
+    optional uint32 sp = 4;
+    optional uint32 reason = 5;
+    optional uint32 alive_state = 6;
+    optional uint32 rescue_val = 7;
+    optional uint64 final_blow_guid = 8;
+}
+message SCObjBattleInfoSync {
+    repeated ObjBattleInfo infos = 1;
+}
+message CSShieldInfo {
+    optional uint64 uuid = 1;
+    repeated ShieldInfo shield = 2;
+}
+message SCShieldInfo {
+    optional uint64 uuid = 1;
+    repeated ShieldInfo shield = 2;
+}
+message CSShieldInfoDel {
+    optional uint64 uuid = 1;
+    repeated uint32 shield_id = 2;
+}
+message AIOwnerInfo {
+    repeated OwnerInfo infos = 1;
+    message OwnerInfo {
+        optional uint64 uuid = 1;
+        optional uint32 owner = 2;
+    }
+}
+message AITreeInfo {
+    repeated AIInfo infos = 1;
+    message AIInfo {
+        optional uint64 uuid = 1;
+        repeated uint32 params = 2;
+    }
+}
+message EntityPosition {
+    optional float x = 1;
+    optional float y = 2;
+    optional float z = 3;
+}
+message EntityRotation {
+    optional float angle = 1;
+}
+message EntityTransform {
+    optional EntityPosition position = 1;
+    optional EntityRotation rotation = 2;
+}
+message KiboEntityInfo {
+    optional uint64 entity_id = 1;
+    optional int32 conf_id = 2;
+    optional EntityTransform transform = 3;
+}
+message StoryKillReq {
+    repeated uint64 guid = 1;
+}
+message FightAttChange {
+    optional uint32 max_hp = 1;
+    optional uint32 over_time = 2;
+    optional uint64 guid = 3;
+    optional bool is_add_max_hp = 4;
+}
+message SkillChg {
+    optional uint64 guid = 1;
+    repeated SkillCD skill_info = 2;
+}
+message CSGetCatchPetInfo {
+    repeated uint64 tar_id = 1;
+    optional uint32 day_weather = 2;
+    optional uint32 reason = 3;
+    optional uint32 pet_len_id = 4;
+}
+message CatchPetInfo {
+    optional uint64 uuid = 1;
+    optional uint32 grade = 2;
+    optional uint32 gene_size = 3;
+    repeated NewGeneInfo gene_infos = 4;
+    optional uint32 rank = 5;
+    repeated CatchPetTimes catch_pet_times = 6;
+    optional uint32 pet_len_id = 7;
+    repeated Comprehension comprehension = 8;
+}
+message SCGetCatchPetInfo {
+    repeated CatchPetInfo pets = 1;
+    optional uint32 reason = 2;
+}
+message ObjBattlePhaseInfo {
+    optional uint64 uuid = 1;
+    optional uint32 phase = 2;
+    optional uint32 base_hp = 3;
+    optional uint32 extra_hp = 4;
+    optional uint32 max_hp = 5;
+}
+message SCObjBattlePhaseInfoSync {
+    repeated ObjBattlePhaseInfo infos = 1;
+}
+message FsmParamChange {
+    optional uint64 targetId = 1;
+    optional string paramName = 2;
+    optional int32 paramType = 3;
+    optional sint32 intValue = 4;
+    optional float floatValue = 5;
+    optional bool boolValue = 6;
+    optional bool triggerValue = 7;
+    optional uint64 customParama = 8;
+    optional uint64 elementUniqueId = 9;
+    optional uint32 paramNameIndex = 10;
+}
+message FsmStateChange {
+    optional uint64 targetId = 1;
+    optional int32 sourceStateType = 2;
+    optional int32 targetStateType = 3;
+    optional bytes stateArgs = 4;
+    optional uint64 elementUniqueId = 5;
+}
+message FsmChange {
+    optional uint64 targetId = 1;
+    repeated FsmParamChange paramChanges = 2;
+    optional FsmStateChange stateChanges = 3;
+}
+message CSFsmInfo {
+    repeated FsmParamChange paramChanges = 1;
+    repeated FsmStateChange stateChanges = 2;
+    repeated string stringMap = 3;
+    repeated FsmChange changes = 4;
+}
+message AnimatorInfo {
+    optional uint64 targetId = 1;
+    optional float speed = 2;
+    repeated AnimatorStateInfo stateInfo = 3;
+}
+message CSAnimatorSyncInfo {
+    repeated FsmParamChange paramChanges = 1;
+    repeated AnimatorInfo animator_info = 2;
+}
+message AnimatorStateInfo {
+    optional int32 layerIndex = 1;
+    optional int32 stateHash = 2;
+    optional float normalizedTime = 3;
+}
+message BattleSkillInfo {
+    optional uint64 tar_id = 1;
+    optional uint32 op = 2;
+    optional SkillInfo skill = 3;
+}
+message BattleEntityInfo {
+    optional uint64 tar_id = 1;
+    optional uint64 tar_index = 2;
+    optional uint32 op = 3;
+}
+message CSBattleInfo {
+    optional uint64 op_time = 1;
+    optional uint64 op_tick = 2;
+    optional BufChgInfo element_info = 3;
+    optional HurtInfo hurt_info = 4;
+    optional BattleSkillInfo skill_info = 5;
+    optional BattleEntityInfo entity_info = 6;
+}
+message BattleInfoData {
+    optional BufChgInfo element_info = 1;
+    optional HurtInfo hurt_info = 2;
+}
+message BattleInfoReduce {
+    optional uint64 base_time = 1;
+    repeated uint64 uint64_dic = 2;
+    repeated BattleInfoData battle_info = 3;
+}
+message CSElementInfo {
+    repeated BufChgInfo info = 1;
+    optional uint64 op_time = 2;
+}
+message SyncElementInfo {
+    repeated BufChgInfo info = 1;
+    optional uint64 op_time = 2;
+}
+message AddBuffInfoData {
+    optional uint32 cfg_id = 1;
+    optional uint64 attacker_id = 2;
+    optional uint64 executor_id = 3;
+    optional uint64 source_id = 4;
+    optional uint64 creator_id = 5;
+    optional uint32 from_type = 6;
+    optional uint32 from_params = 7;
+    optional uint64 uniqueId = 8;
+    optional uint32 collisionType = 9;
+}
+message CSAddBuffInfo {
+    repeated BufChgInfo data = 1;
+}
+message SCAddBuffInfo {
+    repeated BufChgInfo data = 1;
+}
+message BattleAttrValue {
+    optional uint32 attr_type = 1;
+    optional float value = 2;
+    optional uint32 attr_tag = 3;
+}
+message BattleAttrbuteChangeInfo {
+    optional uint32 attrId = 1;
+    repeated BattleAttrValue attr_values = 2;
+}
+message CSBattleAttrbuteChange {
+    optional uint64 uuid = 1;
+    repeated BattleAttrbuteChangeInfo attrButeInfos = 2;
+}
+message SyncBattleAttrbuteChange {
+    optional uint64 uuid = 1;
+    repeated BattleAttrbuteChangeInfo attrButeInfos = 2;
+}
+message SCBattleAttrbute {
+    optional uint64 uuid = 1;
+    repeated BattleAttrbuteChangeInfo attrButeInfos = 2;
+}
+message HurtSyncInfo {
+    optional HurtInfo info = 1;
+    optional uint64 op_time = 2;
+}
+message CSHurtInfo {
+    repeated HurtSyncInfo infos = 1;
+}
+message SCHurtInfo {
+    optional uint32 from_player = 1;
+    repeated HurtInfo hurt = 2;
+}
+message CSSkillStart {
+    optional uint64 unit_id = 1;
+    optional SkillInfo skill = 2;
+    optional uint64 op_time = 3;
+    optional BattleVerifyInfo verify_info = 4;
+}
+message SCSkillStart {
+}
+message SyncSSkillStart {
+    optional uint64 unit_id = 1;
+    optional SkillInfo skill = 2;
+    optional uint64 op_time = 3;
+}
+message CSSkillStop {
+    optional uint64 unit_id = 1;
+    optional uint64 skill_id = 2;
+    optional uint64 op_time = 3;
+    optional BattleVerifyInfo verify_info = 4;
+}
+message SyncSkillStop {
+    optional uint64 unit_id = 1;
+    optional uint32 skill_id = 2;
+    optional uint64 op_time = 3;
+}
+message SummonInfo {
+    optional uint64 unit_id = 1;
+    optional uint32 config_id = 2;
+    optional SummonType summon_type = 3;
+    optional uint32 skill_id = 4;
+    optional uint64 skill_track_id = 5;
+    optional uint32 element_id = 6;
+    optional uint64 op_time = 7;
+    optional sint32 pos_x = 8;
+    optional sint32 pos_y = 9;
+    optional sint32 pos_z = 10;
+    optional sint32 dir_x = 11;
+    optional sint32 dir_y = 12;
+    optional sint32 dir_z = 13;
+    repeated BattleAttrbuteChangeInfo attrButeInfos = 14;
+    optional uint32 skill_start_frame = 15;
+    optional uint32 lv = 16;
+}
+message CliSummonControlData {
+    optional uint32 camp_type = 1;
+    optional uint32 summonInherit_type = 2;
+    optional uint32 status_mask = 3;
+    optional uint32 die_out_time_skill = 4;
+    optional uint32 die_out_max_count_skill = 5;
+    optional uint32 die_with_change_hero_skill = 6;
+    optional uint32 die_with_owner_skill = 7;
+    optional uint32 summon_count_type = 8;
+    optional sint32 summon_life_time = 9;
+    optional uint32 base_id = 10;
+    optional uint32 summon_level = 11;
+}
+message CSCreateSummon {
+    optional uint64 unit_id = 1;
+    optional SummonInfo summon_info = 2;
+    optional uint64 op_time = 3;
+    optional uint64 top_unit_id = 4;
+    optional BattleVerifyInfo verify_info = 5;
+    optional CliSummonControlData cli_ctr_data = 6;
+}
+message SCCreateSummon {
+}
+message SyncCreateSummon {
+    optional uint64 unit_id = 1;
+    optional SummonInfo summon_info = 2;
+    optional uint64 op_time = 3;
+    optional uint64 top_unit_id = 4;
+}
+message CSRemoveSummon {
+    optional uint64 unit_id = 1;
+    optional uint32 op = 2;
+    optional uint64 op_time = 3;
+    optional BattleVerifyInfo verify_info = 4;
+}
+message SyncRemoveSummon {
+    optional uint64 unit_id = 1;
+    optional uint32 op = 2;
+    optional uint64 op_time = 3;
+}
+message BulletInfo {
+    optional uint32 skill_id = 1;
+    optional uint64 bullet_id = 2;
+    optional uint32 config_id = 3;
+    optional sint32 pos_x = 4;
+    optional sint32 pos_y = 5;
+    optional sint32 pos_z = 6;
+    optional sint32 dir_x = 7;
+    optional sint32 dir_y = 8;
+    optional sint32 dir_z = 9;
+    optional uint64 target_id = 10;
+    optional Position shoot_pos = 11;
+    optional Position shoot_dir = 12;
+    optional Position owner_pos = 13;
+    optional Position owner_dir = 14;
+    optional Position skill_target_pos = 15;
+    optional Position skill_target_dir = 16;
+    optional Position rotation = 17;
+    optional uint64 creator_id = 18;
+    optional BattleVerifyInfo verify_info = 19;
+}
+message CSBulletCreate {
+    optional uint64 unit_id = 1;
+    repeated BulletInfo bullet_info = 2;
+    optional uint64 op_time = 3;
+}
+message SCBulletCreate {
+}
+message SyncBulletCreate {
+    optional uint64 unit_id = 1;
+    repeated BulletInfo bullet_info = 2;
+    optional uint64 op_time = 3;
+}
+message BulletActionInfo {
+    optional uint64 unit_id = 1;
+    optional uint64 bullet_id = 2;
+    optional uint32 action_type = 3;
+    optional uint32 action_id = 4;
+    optional uint64 target_id = 5;
+    optional Position dir = 6;
+    optional Position pos = 7;
+    optional BattleVerifyInfo verify_info = 8;
+}
+message CSBulletActionChange {
+    repeated BulletActionInfo action_info = 1;
+    optional uint64 op_time = 2;
+}
+message SyncCBulletActionChange {
+    repeated BulletActionInfo action_info = 1;
+    optional uint64 op_time = 2;
+}
+message HateInfo {
+    optional uint64 uuid = 1;
+    optional uint32 value = 2;
+    optional uint32 op_time = 3;
+}
+message HateListInfo {
+    optional uint64 uuid = 1;
+    repeated HateInfo info = 2;
+}
+message HateListInfoChange {
+    repeated HateListInfo info = 1;
+}
+message WorldSyncCommonValue {
+    optional uint32 key = 1;
+    optional Value value = 2;
+    message Value {
+        optional sint32 intValue = 1;
+        optional float floatValue = 2;
+        optional bool boolValue = 3;
+    }
+}
+message PresentationInfoData {
+    optional DissolveEntityMsg dissolve = 1;
+    repeated SetPrefabEffectActiveMsg prefab_effect = 2;
+}
+message FightObjBaseData {
+    repeated ShieldInfo shield = 1;
+    optional uint32 hp = 2;
+    optional uint32 sp = 3;
+    optional MoveInfo move_info = 4;
+}
+message MonsterBaseData {
+    optional ObjBattlePhaseInfo info = 1;
+    optional uint64 break_time = 2;
+    optional uint32 break_val = 3;
+    optional uint32 enemy_pack = 4;
+    optional uint32 mob_cfg_id = 5;
+}
+message SummonerBaseData {
+    optional uint64 top_unit_id = 1;
+    optional uint32 config_id = 2;
+    optional SummonType summon_type = 3;
+    optional uint32 skill_id = 4;
+    optional uint64 skill_track_id = 5;
+    optional uint32 element_id = 6;
+    optional uint32 base_id = 7;
+    optional uint32 summon_count_type = 8;
+    optional uint32 skill_start_frame = 9;
+}
+message BattleEntitySyncInfo {
+    optional uint64 unit_id = 1;
+    repeated BufChgInfo element_infos = 2;
+    optional CSFsmInfo fsm_info = 3;
+    repeated BattleAttrbuteChangeInfo attr_infos = 4;
+    repeated AttributeEntry entry_infos = 5;
+    optional SummonerBaseData summon_base_data = 6;
+    repeated WorldSyncCommonValue common_key_values = 7;
+    optional PresentationInfoData presentation_info = 8;
+    optional FightObjBaseData fobj_base_data = 9;
+    optional MonsterBaseData mon_base_data = 10;
+    optional PetBaseData pet_base_data = 11;
+}
+message PetBaseData {
+    optional uint64 source_pet_guid = 1;
+}
+message SCBattleEntitySyncInfo {
+    repeated BattleEntitySyncInfo infos = 1;
+}
+message DamageTextInfo {
+    optional uint64 attack_uid = 1;
+    optional uint64 receive_uid = 2;
+    optional uint32 value = 3;
+    optional Position hitPoint = 4;
+    optional uint32 elementId = 5;
+    optional bool isWeak = 6;
+    optional bool isCritical = 7;
+    optional sint32 restraintValue = 8;
+}
+message CSDamageText {
+    repeated DamageTextInfo damageTextInfos = 1;
+    optional uint64 attack_uid = 2;
+}
+message SyncDamageText {
+    repeated DamageTextInfo damageTextInfos = 1;
+}
+message DamageDoge {
+    optional uint64 unit_id = 1;
+}
+message CSDamageDoge {
+    repeated DamageDoge damageDoges = 1;
+    optional uint64 attack_uid = 2;
+    optional uint64 target_uid = 3;
+}
+message SyncDamageDoge {
+    repeated DamageDoge damageDoges = 1;
+    optional uint64 target_uid = 2;
+}
+message FlashInfo {
+    optional uint64 unit_id = 1;
+    optional uint32 collisionType = 2;
+    optional Position hitPoint = 3;
+    optional uint32 burstId = 4;
+}
+message CSFlashInfo {
+    repeated FlashInfo flashInfos = 1;
+}
+message SyncFlashInfo {
+    repeated FlashInfo flashInfos = 1;
+}
+message BoneShake {
+    optional uint32 boneShakeIndex = 1;
+    optional Position dir = 2;
+    optional uint32 ramp = 3;
+}
+message CSBoneShake {
+    repeated BoneShake boneShakes = 1;
+}
+message SyncBoneShake {
+    repeated BoneShake boneShakes = 1;
+}
+message HealTextInfo {
+    optional uint64 source_uid = 1;
+    optional uint64 receive_uid = 2;
+    optional uint32 value = 3;
+}
+message CSHealTextInfo {
+    repeated HealTextInfo healTextInfos = 1;
+    optional uint64 receive_uid = 2;
+}
+message SyncHealTextInfo {
+    repeated HealTextInfo healTextInfos = 1;
+}
+message StackEffect {
+    optional uint64 unit_id = 1;
+    optional uint32 element_id = 2;
+}
+message CSStackEffect {
+    optional uint64 source_id = 1;
+    repeated StackEffect stackEffects = 2;
+}
+message SyncStackEffect {
+    optional uint64 source_id = 1;
+    repeated StackEffect stackEffects = 2;
+}
+message MonsterSceneInfo {
+    optional uint64 tar_id = 1;
+    optional EEntityScene scene = 2;
+}
+message CSMonsterScene {
+    repeated MonsterSceneInfo infos = 1;
+}
+message DispatchEventMsg {
+    optional uint64 unit_id = 1;
+    optional uint32 eventType = 2;
+    optional sint32 intValue1 = 3;
+    optional sint32 intValue2 = 4;
+}
+message MediaPackPlayMsg {
+    optional uint64 unit_id = 1;
+    optional string effectKey = 2;
+    optional int32 duration = 3;
+    optional uint32 bindType = 4;
+    optional Position offset = 5;
+}
+message CustomMediaPackPlayMsg {
+    optional uint64 unit_id = 1;
+    optional uint32 battleEvent = 2;
+}
+message DissolveEntityMsg {
+    optional uint64 unit_id = 1;
+    optional int32 time = 2;
+    optional bool isShow = 3;
+}
+message SetPrefabEffectActiveMsg {
+    optional uint64 unit_id = 1;
+    optional bool active = 2;
+    repeated string effectNames = 3;
+    repeated string meshNames = 4;
+}
+message PlayVoiceMsg {
+    optional uint64 unit_id = 1;
+    optional int32 voiceId = 2;
+}
+message SetPerformActionMsg {
+    optional uint64 unit_id = 1;
+    optional uint32 actionType = 2;
+    optional string animName = 3;
+    optional int32 crossfadeTime = 4;
+    optional int32 waitTime = 5;
+    optional bool hideHud = 6;
+    optional bool needAutoStop = 7;
+    optional int32 performID = 8;
+}
+message StopPerformActionMsg {
+    optional uint64 unit_id = 1;
+    optional int32 performID = 2;
+}
+message BlackboardValue {
+    optional int32 treeId = 1;
+    optional string name = 2;
+    optional int32 type = 3;
+    optional sint32 intValue = 4;
+    optional float floatValue = 5;
+    optional bool boolValue = 6;
+    optional Position vector3Value = 7;
+    optional uint64 entityValue = 8;
+}
+message BlackboardUpdate {
+    optional uint64 uuid = 1;
+    repeated BlackboardValue values = 2;
+}
+message CSBlackboardUpdate {
+    repeated BlackboardUpdate infos = 1;
+}
+message MonsterGrorpWallActive {
+    optional uint32 enemy_group_id = 1;
+    optional Position pos = 2;
+}
+message SCMonsterGroupWallActives {
+    repeated MonsterGrorpWallActive wall = 1;
+}
+message SCMonsterGroupWallInactives {
+    repeated uint32 enemy_group_id = 1;
+}
+message CSCombineAttack {
+    optional uint64 attack_id = 1;
+    optional uint64 target_id = 2;
+}
+message CSRescueObj {
+    repeated RescueInfo rescue_infos = 1;
+    message RescueInfo {
+        optional uint64 from_uuid = 1;
+        optional uint64 tar_uuid = 2;
+        optional uint32 val = 3;
+    }
+}
+message SCRescueObjNtf {
+    repeated RescueInfo rescue_infos = 1;
+    message RescueInfo {
+        optional uint64 from_uuid = 1;
+        optional uint64 tar_uuid = 2;
+        optional uint32 final_val = 3;
+    }
+}
+message CSReviveHero {
+    optional uint64 hero_uuid = 1;
+    optional uint32 revive_val = 2;
+}
+message ServerElementInfo {
+    optional uint32 element_temp_id = 1;
+    optional uint32 element_conf_id = 2;
+    optional uint64 attacker_id = 3;
+    optional uint64 executor_id = 4;
+    optional uint64 source_id = 5;
+    optional uint64 creator_id = 6;
+    optional uint32 skill_id = 7;
+    optional uint32 number_layers = 8;
+}
+message SCServerElementSync {
+    repeated ServerElementInfo elements = 1;
+    repeated ServerElementInfo del_elements = 2;
+}
+message BattleVerifyInfo {
+    optional uint64 battle_index = 1;
+    optional uint64 related_index = 2;
+    optional uint64 op_time = 3;
+    optional SkillVerifyType source_type = 4;
+    optional int64 source_id = 5;
+}
+message PresentationMsgs {
+    repeated DispatchEventMsg dispatch_event_msg = 1;
+    repeated MediaPackPlayMsg media_pack_play_msg = 2;
+    repeated CustomMediaPackPlayMsg custom_media_pack_play_msg = 3;
+    repeated DissolveEntityMsg dissolve_entity_msg = 4;
+    repeated SetPrefabEffectActiveMsg set_prefab_effect_active_msg = 5;
+    repeated PlayVoiceMsg play_voice_msg = 6;
+    repeated SetPerformActionMsg set_perform_action_msg = 7;
+    repeated StopPerformActionMsg stop_perform_action_ms = 8;
+}
