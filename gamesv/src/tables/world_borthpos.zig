@@ -5,6 +5,16 @@ pub fn getById(id: u32) ?WorldBorthPos {
     return null;
 }
 
+pub fn queryCityBirthPos(map_id: u32) ?WorldBorthPos {
+    for (data) |world_borthpos| {
+        if (world_borthpos.city_id == map_id and world_borthpos.main_point == 1) {
+            return world_borthpos;
+        }
+    }
+
+    return null;
+}
+
 pub const WorldBorthPos = struct {
     id: u32,
     name: LangString,

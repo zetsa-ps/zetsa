@@ -2,10 +2,15 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
     const log = std.log.scoped(.CSProtoEnterWorldMap);
     log.debug("{any}", .{txn.request});
 
+    var previous_world_map: ?logic.StoreData.WorldMap = null;
     const world_map = &txn.any.store_data.world_map;
 
     if ((txn.request.map_id orelse 0) != 0 and (txn.request.point_id orelse 0) != 0) {
         const map_id = txn.request.map_id.?;
+
+        if (map_id == tables.game.home_id) {
+            previous_world_map = world_map.*;
+        }
 
         for (tables.world_borthpos.data) |world_borthpos| {
             if (world_borthpos.city_id == map_id) {
@@ -18,6 +23,8 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
                     );
 
                     world_map.setPositionByBorthPoint(world_borthpos.borth_point);
+
+                    if (map_id == tables.game.home_id) break;
 
                     {
                         const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
@@ -45,6 +52,10 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
     try sendObjBattleInfoSync(txn.any);
     try sendBattleHeroInfoSync(txn.any);
     try sendHeroAttrInfoSync(txn.any);
+
+    if (previous_world_map != null) {
+        world_map.* = previous_world_map.?;
+    }
 }
 
 pub fn dayWeatherSync(txn: Transaction(.CSProtoDayWeatherSync)) !void {
@@ -152,13 +163,15 @@ pub fn stateUpdate(txn: Transaction(.CSProtoStateUpdate)) !void {
     ).toInt();
 
     if (txn.request.move_msg) |move_msg| for (move_msg.move.items) |move_item| {
+        if (move_msg.map_id == tables.game.home_id) break;
+
         if (active_uuid == move_item.uuid) {
             const move_info = move_item.info orelse continue;
 
             const pos = move_info.pos orelse continue;
 
             if (move_info.angle) |angle|
-                store_data.world_map.angle = angle;
+                store_data.world_map.angle = angle * 100;
 
             if (move_info.area_id) |area_id|
                 store_data.world_map.area_id = area_id;
@@ -180,6 +193,30 @@ pub fn stateUpdate(txn: Transaction(.CSProtoStateUpdate)) !void {
             break;
         }
     };
+}
+
+pub fn enterHome(txn: Transaction(.CSProtoEnterHome)) !void {
+    if (txn.request.creator_id) |creator_id| {
+        if (creator_id == txn.any.store_data.player_id.toInt()) {
+            const world_map = &txn.any.store_data.world_map;
+            const previous_world_map = world_map.*;
+
+            world_map.map_id = tables.game.home_id;
+            world_map.setPositionByBorthPoint(tables.world_borthpos.queryCityBirthPos(world_map.map_id).?.borth_point);
+
+            try sendWorldMapSync(txn.any, null);
+
+            world_map.* = previous_world_map;
+        }
+    }
+
+    try txn.respond(.{});
+}
+
+pub fn worldQuitHome(txn: Transaction(.CSProtoWorldQuitHome)) !void {
+    try sendWorldMapSync(txn.any, null);
+
+    try txn.respond(.{});
 }
 
 fn sendWorldMapSync(txn: *AnyTransaction, ctd: ?u32) !void {
