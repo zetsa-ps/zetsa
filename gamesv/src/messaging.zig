@@ -35,15 +35,17 @@ pub fn Transaction(comptime id: proto.CSProtoIDType) type {
 // A type-erased structure containing all of
 // the resources associated with the Transaction.
 pub const AnyTransaction = struct {
+    // general-purpose
     io: Io,
     gpa: Allocator,
     arena: Allocator,
     time: Io.Timestamp,
+    // network-related
     sink: *Io.Writer,
     seq_no: u16,
     push_seq: u16,
-    // logic data
-    store_data: *logic.StoreData,
+    // logic-related
+    player_store: *logic.PlayerStore,
 
     pub fn send(txn: *AnyTransaction, comptime id: proto.CSProtoIDType, message: @field(
         proto.pb,
@@ -83,7 +85,7 @@ const BoundProtoID = blk: {
 pub fn dispatch(
     io: Io,
     gpa: Allocator,
-    store_data: *logic.StoreData,
+    player_store: *logic.PlayerStore,
     msg: *channel.NetMsg,
     sink: *Io.Writer,
 ) Error!void {
@@ -98,7 +100,7 @@ pub fn dispatch(
         .sink = sink,
         .seq_no = msg.data.seq_no,
         .push_seq = msg.data.push_seq,
-        .store_data = store_data,
+        .player_store = player_store,
     };
 
     const recv_proto_id = std.enums.fromInt(BoundProtoID, msg.data.msg_id) orelse {
@@ -116,7 +118,7 @@ pub fn dispatch(
 
     // The enter game request should be the first one.
     // Any subsequent message is allowed if and only if it succeeded.
-    if (recv_proto_id != .CSProtoEnterGame and store_data.player_id == .none)
+    if (recv_proto_id != .CSProtoEnterGame and player_store.id == .none)
         return error.UnexpectedMessage;
 
     switch (recv_proto_id) {

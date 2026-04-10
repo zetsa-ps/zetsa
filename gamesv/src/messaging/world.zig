@@ -2,8 +2,8 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
     const log = std.log.scoped(.CSProtoEnterWorldMap);
     log.debug("{any}", .{txn.request});
 
-    var previous_world_map: ?logic.StoreData.WorldMap = null;
-    const world_map = &txn.any.store_data.world_map;
+    var previous_world_map: ?logic.PlayerStore.WorldMap = null;
+    const world_map = &txn.any.player_store.world_map;
 
     if ((txn.request.map_id orelse 0) != 0 and (txn.request.point_id orelse 0) != 0) {
         const map_id = txn.request.map_id.?;
@@ -12,7 +12,7 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
             previous_world_map = world_map.*;
         }
 
-        for (tables.world_borthpos.data) |world_borthpos| {
+        for (tables.world_borthpos.list) |world_borthpos| {
             if (world_borthpos.city_id == map_id) {
                 if (world_borthpos.id == txn.request.point_id.?) {
                     world_map.map_id = @bitCast(map_id);
@@ -30,7 +30,7 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
                         const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
                         defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
 
-                        store.player.saveWorldMapAttributes(txn.any.io, txn.any.store_data) catch |err| {
+                        store.player.saveWorldMapAttributes(txn.any.io, txn.any.player_store) catch |err| {
                             log.err("failed to save world map attributes: {t}", .{err});
                             return;
                         };
@@ -117,7 +117,7 @@ pub fn worldPoint(txn: Transaction(.CSProtoWorldPoint)) !void {
         return;
     };
 
-    const world_map = &txn.any.store_data.world_map;
+    const world_map = &txn.any.player_store.world_map;
 
     world_map.map_id = pos.city_id;
     world_map.area_id = tables.world_area.calculateBelongArea(
@@ -132,7 +132,7 @@ pub fn worldPoint(txn: Transaction(.CSProtoWorldPoint)) !void {
         const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
         defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
 
-        store.player.saveWorldMapAttributes(txn.any.io, txn.any.store_data) catch |err| {
+        store.player.saveWorldMapAttributes(txn.any.io, txn.any.player_store) catch |err| {
             log.err("failed to save world map attributes: {t}", .{err});
             return;
         };
@@ -154,11 +154,11 @@ pub fn objHatredIncSync(txn: Transaction(.CSProtoObjHatredIncSync)) !void {
 
 pub fn stateUpdate(txn: Transaction(.CSProtoStateUpdate)) !void {
     const log = std.log.scoped(.CSProtoStateUpdate);
-    const store_data = txn.any.store_data;
+    const player_store = txn.any.player_store;
 
-    const world_group = store_data.formation.group_map.getPtr(.world).?;
+    const world_group = player_store.lineup.group_map.getPtr(.world).?;
     const active_uuid = logic.Uuid.hero(
-        store_data.player_id,
+        player_store.id,
         world_group.formation_controls[world_group.cur_formation].toHeroId().?,
     ).toInt();
 
@@ -171,20 +171,20 @@ pub fn stateUpdate(txn: Transaction(.CSProtoStateUpdate)) !void {
             const pos = move_info.pos orelse continue;
 
             if (move_info.angle) |angle|
-                store_data.world_map.angle = angle * 100;
+                player_store.world_map.angle = angle * 100;
 
             if (move_info.area_id) |area_id|
-                store_data.world_map.area_id = area_id;
+                player_store.world_map.area_id = area_id;
 
-            store_data.world_map.position_x = pos.x orelse 0;
-            store_data.world_map.position_y = pos.y orelse 0;
-            store_data.world_map.position_z = pos.z orelse 0;
+            player_store.world_map.position_x = pos.x orelse 0;
+            player_store.world_map.position_y = pos.y orelse 0;
+            player_store.world_map.position_z = pos.z orelse 0;
 
             {
                 const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
                 defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
 
-                store.player.saveWorldMapAttributes(txn.any.io, store_data) catch |err| {
+                store.player.saveWorldMapAttributes(txn.any.io, player_store) catch |err| {
                     log.err("failed to save world map attributes: {t}", .{err});
                     return;
                 };
@@ -197,8 +197,8 @@ pub fn stateUpdate(txn: Transaction(.CSProtoStateUpdate)) !void {
 
 pub fn enterHome(txn: Transaction(.CSProtoEnterHome)) !void {
     if (txn.request.creator_id) |creator_id| {
-        if (creator_id == txn.any.store_data.player_id.toInt()) {
-            const world_map = &txn.any.store_data.world_map;
+        if (creator_id == txn.any.player_store.id.toInt()) {
+            const world_map = &txn.any.player_store.world_map;
             const previous_world_map = world_map.*;
 
             world_map.map_id = tables.game.home_id;
@@ -220,63 +220,60 @@ pub fn worldQuitHome(txn: Transaction(.CSProtoWorldQuitHome)) !void {
 }
 
 fn sendWorldMapSync(txn: *AnyTransaction, ctd: ?u32) !void {
-    const store_data = txn.store_data;
-    const player_id = store_data.player_id;
-
+    const player_store = txn.player_store;
     var map_points: std.ArrayList(u32) = .empty;
 
-    for (tables.world_borthpos.data) |world_borthpos| {
-        if (world_borthpos.city_id == store_data.world_map.map_id) {
+    for (tables.world_borthpos.list) |world_borthpos| {
+        if (world_borthpos.city_id == player_store.world_map.map_id) {
             try map_points.append(txn.arena, world_borthpos.id);
         }
     }
 
     var world_map: pb.WorldMap = .{
-        .creator_id = player_id.toInt(),
-        .map_id = store_data.world_map.map_id,
+        .creator_id = player_store.id.toInt(),
+        .map_id = player_store.world_map.map_id,
         .players = .empty,
     };
 
     const move_info: pb.MoveInfo = .{
         .pos = .{
-            .x = store_data.world_map.position_x,
-            .y = store_data.world_map.position_y,
-            .z = store_data.world_map.position_z,
+            .x = player_store.world_map.position_x,
+            .y = player_store.world_map.position_y,
+            .z = player_store.world_map.position_z,
         },
-        .angle = store_data.world_map.angle,
-        .area_id = store_data.world_map.area_id,
+        .angle = player_store.world_map.angle,
+        .area_id = player_store.world_map.area_id,
         .move_status = @intFromEnum(pb.MoveStatus.MS_TRANSFER),
         .timestamp = @intCast(txn.time.toSeconds()),
     };
 
-    const formation_store = &txn.store_data.formation;
-    const world_group = formation_store.group_map.getPtr(.world).?;
+    const world_group = player_store.lineup.group_map.getPtr(.world).?;
     const formation_index = world_group.cur_formation;
 
-    var group_heros_buf: [FormationStore.Formation.HeroPos.count]u64 = undefined;
-    var group_hero_mid_buf: [FormationStore.Formation.HeroPos.count]u64 = undefined;
+    var group_heros_buf: [PlayerStore.Lineup.Formation.HeroPos.count]u64 = undefined;
+    var group_hero_mid_buf: [PlayerStore.Lineup.Formation.HeroPos.count]u64 = undefined;
 
     var group: pb.WorldMapGroup = .{
         .heros = .initBuffer(&group_heros_buf),
         .hero_mid = .initBuffer(&group_hero_mid_buf),
         .control = if (world_group.formation_controls[formation_index].toHeroId()) |hero_id|
-            logic.Uuid.hero(player_id, hero_id).toInt()
+            logic.Uuid.hero(player_store.id, hero_id).toInt()
         else
             null,
     };
 
     for (world_group.formation_heros[formation_index]) |hero_pos| {
         const hero_id = hero_pos.toHeroId() orelse continue;
-        const uuid: logic.Uuid = .hero(player_id, hero_id);
+        const uuid: logic.Uuid = .hero(player_store.id, hero_id);
 
         group.heros.appendAssumeCapacity(uuid.toInt());
         group.hero_mid.appendAssumeCapacity(uuid.toInt());
     }
 
-    const basic_info = &txn.store_data.basic_info;
+    const basic_info = &txn.player_store.basic_info;
 
     var player: pb.WorldMapPlayer = .{
-        .player_id = player_id.toInt(),
+        .player_id = player_store.id.toInt(),
         .status = @intFromEnum(pb.WorldMapPlayerStatusType.WMPST_NORMAL),
         .reason = 0,
         .name = basic_info.name.view(),
@@ -299,10 +296,10 @@ fn sendWorldMapSync(txn: *AnyTransaction, ctd: ?u32) !void {
 
     try txn.send(.CSProtoWorldMapSync, .{
         .cmd = @intFromEnum(pb.WorldMapCmdType.WMCT_ENTER),
-        .creator_id = player_id.toInt(),
-        .map_id = store_data.world_map.map_id,
-        .player_id = player_id.toInt(),
-        .notify_id = player_id.toInt(), // ??
+        .creator_id = player_store.id.toInt(),
+        .map_id = player_store.world_map.map_id,
+        .player_id = player_store.id.toInt(),
+        .notify_id = player_store.id.toInt(), // ??
         .zone_id = 0, // battle zone ?
         .client_trans_data = ctd,
         .chats = .empty,
@@ -311,29 +308,29 @@ fn sendWorldMapSync(txn: *AnyTransaction, ctd: ?u32) !void {
 }
 
 fn sendObjBattleInfoSync(txn: *AnyTransaction) !void {
-    const player_id = txn.store_data.player_id;
-    const hero_data = &txn.store_data.hero_data;
+    const player_store = txn.player_store;
 
-    var infos_buf: [StoreData.HeroData.ItemMap.len - 1]pb.ObjBattleInfo = undefined;
+    var infos_buf: [PlayerStore.Hero.ItemMap.len - 1]pb.ObjBattleInfo = undefined;
     var infos: std.ArrayList(pb.ObjBattleInfo) = .initBuffer(&infos_buf);
 
-    var battle_heros = hero_data.battle_map.iterator();
+    var hero_items = player_store.hero.item_map.iterator();
 
-    while (battle_heros.next()) |entry| {
-        const hero_id = entry.key;
+    while (hero_items.next()) |entry| {
+        const id = entry.key;
+        const hero = entry.value;
 
-        if (@intFromEnum(hero_id) == @as(u32, switch (txn.store_data.basic_info.sex) {
+        if (@intFromEnum(id) == @as(u32, switch (txn.player_store.basic_info.sex) {
             .female => tables.game.avatar_hero_id_male,
             .male => tables.game.avatar_hero_id_female,
         })) continue;
 
-        const uuid: logic.Uuid = .hero(player_id, hero_id);
+        const uuid: logic.Uuid = .hero(player_store.id, id);
 
         infos.appendAssumeCapacity(.{
             .uuid = uuid.toInt(),
-            .hp = entry.value.hp.toInt(),
-            .sp = entry.value.sp.toInt(),
-            .alive_state = entry.value.hp.aliveState().toAliveStateType(),
+            .hp = hero.hp.toInt(),
+            .sp = hero.sp.toInt(),
+            .alive_state = hero.hp.aliveState().toAliveStateType(),
             .reason = 1,
         });
     }
@@ -342,10 +339,9 @@ fn sendObjBattleInfoSync(txn: *AnyTransaction) !void {
 }
 
 fn sendBattleHeroInfoSync(txn: *AnyTransaction) !void {
-    const player_id = txn.store_data.player_id;
-    const hero_data = &txn.store_data.hero_data;
+    const player_store = txn.player_store;
 
-    var heros_buf: [StoreData.HeroData.ItemMap.len - 1]pb.FightHeroInfo = undefined;
+    var heros_buf: [PlayerStore.Hero.ItemMap.len - 1]pb.FightHeroInfo = undefined;
     var heros: std.ArrayList(pb.FightHeroInfo) = .initBuffer(&heros_buf);
 
     var oinfo_buf: [1]pb.FightOrnamentInfo = undefined;
@@ -357,20 +353,20 @@ fn sendBattleHeroInfoSync(txn: *AnyTransaction) !void {
         .main_attrs = .{},
     });
 
-    var it = hero_data.item_map.iterator();
+    var it = player_store.hero.item_map.iterator();
 
     while (it.next()) |entry| {
         const hero_id = entry.key;
+        const hero = entry.value;
 
-        if (@intFromEnum(hero_id) == @as(u32, switch (txn.store_data.basic_info.sex) {
+        if (@intFromEnum(hero_id) == @as(u32, switch (txn.player_store.basic_info.sex) {
             .female => tables.game.avatar_hero_id_male,
             .male => tables.game.avatar_hero_id_female,
         })) continue;
 
         const conf = tables.hero.getById(@intFromEnum(hero_id)).?;
-        const battle_hero = hero_data.battle_map.getPtr(hero_id).?;
 
-        const uuid: logic.Uuid = .hero(player_id, hero_id);
+        const uuid: logic.Uuid = .hero(player_store.id, hero_id);
 
         var skill_infos: pb.HeroSkillInfos = .{ .skills = try .initCapacity(txn.arena, conf.skill_list.len) };
 
@@ -390,10 +386,10 @@ fn sendBattleHeroInfoSync(txn: *AnyTransaction) !void {
                 .attrs = try buildHeroBaseAttrs(txn.arena, conf.id, 1, 1),
             },
             .skills = skill_infos,
-            .hp = battle_hero.hp.toInt(),
-            .sp = battle_hero.sp.toInt(),
-            .lv = entry.value.lv.toInt(),
-            .rank = entry.value.rank.toInt(),
+            .hp = hero.hp.toInt(),
+            .sp = hero.sp.toInt(),
+            .lv = hero.lv.toInt(),
+            .rank = hero.rank.toInt(),
             .star = 0,
             .wainfo = .{ .id = conf.weapon_default },
             .wardrobeinfos = .{
@@ -414,29 +410,25 @@ fn sendBattleHeroInfoSync(txn: *AnyTransaction) !void {
 }
 
 fn sendHeroAttrInfoSync(txn: *AnyTransaction) !void {
-    const player_id = txn.store_data.player_id;
-
-    var heros_buf: [StoreData.HeroData.ItemMap.len - 1]pb.HeroAttrInfo = undefined;
-    var modules_buf: [StoreData.HeroData.ItemMap.len - 1]pb.HeroAttrModuleInfo = undefined;
-    var sub_modules_buf: [StoreData.HeroData.ItemMap.len - 1]pb.HeroAttrSubModuleInfo = undefined;
+    var heros_buf: [PlayerStore.Hero.ItemMap.len - 1]pb.HeroAttrInfo = undefined;
+    var modules_buf: [PlayerStore.Hero.ItemMap.len - 1]pb.HeroAttrModuleInfo = undefined;
+    var sub_modules_buf: [PlayerStore.Hero.ItemMap.len - 1]pb.HeroAttrSubModuleInfo = undefined;
 
     var heros: std.ArrayList(pb.HeroAttrInfo) = .initBuffer(&heros_buf);
-
     var modules: std.ArrayList(pb.HeroAttrModuleInfo) = .initBuffer(&modules_buf);
-
     var sub_modules: std.ArrayList(pb.HeroAttrSubModuleInfo) = .initBuffer(&sub_modules_buf);
 
-    var it = txn.store_data.hero_data.item_map.iterator();
+    var it = txn.player_store.hero.item_map.iterator();
 
     while (it.next()) |entry| {
         const hero_id = entry.key;
 
-        if (@intFromEnum(hero_id) == @as(u32, switch (txn.store_data.basic_info.sex) {
+        if (@intFromEnum(hero_id) == @as(u32, switch (txn.player_store.basic_info.sex) {
             .female => tables.game.avatar_hero_id_male,
             .male => tables.game.avatar_hero_id_female,
         })) continue;
 
-        const uuid: logic.Uuid = .hero(player_id, hero_id);
+        const uuid: logic.Uuid = .hero(txn.player_store.id, hero_id);
         const conf = tables.hero.getById(@intFromEnum(hero_id)).?;
 
         var skills: std.ArrayList(pb.UnitSkillInfo) = try .initCapacity(txn.arena, conf.skill_list.len + conf.aerial_skill_list.len + conf.passive_skill_list.len + conf.backup_skill_list.len + 1);
@@ -529,8 +521,7 @@ fn buildHeroBaseAttrs(arena: std.mem.Allocator, hero_id: u32, hero_level: u32, h
     return attributes;
 }
 
-const FormationStore = StoreData.FormationStore;
-const StoreData = logic.StoreData;
+const PlayerStore = logic.PlayerStore;
 
 const AnyTransaction = messaging.AnyTransaction;
 const Transaction = messaging.Transaction;

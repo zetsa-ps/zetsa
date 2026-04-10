@@ -1,36 +1,25 @@
-pub const ItemMap = EnumMap(ID, HeroItem);
-pub const BattleMap = EnumMap(ID, BattleHero);
+pub const ItemMap = EnumMap(ID, Item);
 
 item_map: ItemMap,
-battle_map: BattleMap,
 
 pub const init: HeroData = .{
     .item_map = .init(.{}),
-    .battle_map = .init(.{}),
 };
 
-pub const HeroItem = struct {
+pub const Item = struct {
     lv: Level,
     exp: u32,
     rank: Rank,
     system_skill_levels: [SystemSkillLevel.count]SystemSkillLevel,
+    hp: Hp,
+    sp: Sp,
 
-    pub fn initDefault() HeroItem {
+    pub fn initDefault(id: ID) Item {
         return .{
             .lv = .min,
             .exp = 0,
             .rank = .min,
             .system_skill_levels = @splat(.min),
-        };
-    }
-};
-
-pub const BattleHero = struct {
-    hp: Hp,
-    sp: Sp,
-
-    pub fn initDefault(id: ID) BattleHero {
-        return .{
             .hp = @enumFromInt(logic.big_world.getHeroBaseAttrValue(.maxhp, @intFromEnum(id), 1, 1)),
             .sp = .full,
         };
@@ -84,8 +73,7 @@ pub fn unlockById(hero_data: *HeroData, id: ID) void {
     if (hero_data.item_map.contains(id))
         return;
 
-    hero_data.item_map.put(id, .initDefault());
-    hero_data.battle_map.put(id, .initDefault(id));
+    hero_data.item_map.put(id, .initDefault(id));
 }
 
 pub const ID = tables.hero.Id;

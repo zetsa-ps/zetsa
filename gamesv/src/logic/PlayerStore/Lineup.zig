@@ -9,7 +9,7 @@ pub const GroupMap = EnumMap(Group.Type, Group);
 
 group_map: GroupMap,
 
-pub const init: FormationStore = .{
+pub const init: Lineup = .{
     .group_map = .init(.{
         .world = .{
             .cur_formation = 0,
@@ -96,4 +96,4 @@ const tables = @import("../../tables.zig");
 const common = @import("common");
 const proto = @import("proto");
 const std = @import("std");
-const FormationStore = @This();
+const Lineup = @This();

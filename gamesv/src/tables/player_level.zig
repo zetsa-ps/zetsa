@@ -1,13 +1,13 @@
-pub const data: []const PlayerLevelData = @import("tables/player_level");
+pub const list: []const Entry = @import("tables/player_level");
 
-pub fn getById(id: u32) ?PlayerLevelData {
-    for (data) |lv| if (lv.id == id) return lv;
+pub fn getById(id: u32) ?Entry {
+    for (list) |lv| if (lv.id == id) return lv;
     return null;
 }
 
 pub const Level = enum(u8) {
-    min = data[0].id,
-    max = data[data.len - 1].id,
+    min = list[0].id,
+    max = list[list.len - 1].id,
     _,
 
     pub fn toInt(level: Level) u8 {
@@ -15,7 +15,7 @@ pub const Level = enum(u8) {
     }
 };
 
-pub const PlayerLevelData = struct {
+pub const Entry = struct {
     id: u8,
     exp: u32,
     stamina: u32,

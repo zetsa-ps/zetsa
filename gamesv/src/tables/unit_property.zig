@@ -1,11 +1,11 @@
-pub const data: []const UnitProperty = @import("tables/unit_property");
+pub const list: []const Entry = @import("tables/unit_property");
 
-pub fn getById(id: u32) ?UnitProperty {
-    for (data) |h| if (h.id == id) return h;
+pub fn getById(id: u32) ?Entry {
+    for (list) |h| if (h.id == id) return h;
     return null;
 }
 
-pub const UnitProperty = struct {
+pub const Entry = struct {
     id: u32,
     base_attribute_id: u32,
     behavior: u32,

@@ -12,7 +12,7 @@ pub const Uuid = packed struct(u64) {
         }
     };
 
-    pub fn hero(player_id: StoreData.PlayerID, config_id: tables.hero.Id) Uuid {
+    pub fn hero(player_id: PlayerStore.ID, config_id: tables.hero.Id) Uuid {
         return .{
             .player_id = player_id.toInt(),
             .config_id = @intFromEnum(config_id),
@@ -207,7 +207,7 @@ pub const System = enum(u32) {
 
 pub const math = @import("logic/math.zig");
 pub const gameplay = @import("logic/gameplay.zig");
-pub const StoreData = @import("logic/StoreData.zig");
+pub const PlayerStore = @import("logic/PlayerStore.zig");
 pub const big_world = @import("logic/big_world.zig");
 
 const tables = @import("tables.zig");

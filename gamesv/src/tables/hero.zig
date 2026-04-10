@@ -1,16 +1,16 @@
-pub const data: []const HeroData = @import("tables/hero");
+pub const list: []const Entry = @import("tables/hero");
 
-pub fn getById(id: u32) ?HeroData {
-    for (data) |h| if (h.id == id) return h;
+pub fn getById(id: u32) ?Entry {
+    for (list) |h| if (h.id == id) return h;
     return null;
 }
 
 pub const Id = gen: {
-    var field_names: [data.len][:0]const u8 = undefined;
-    var field_values: [data.len]u24 = undefined;
+    var field_names: [list.len][:0]const u8 = undefined;
+    var field_values: [list.len]u24 = undefined;
     var active_count: usize = 0;
 
-    for (data) |item| if (item.is_usable != 0) {
+    for (list) |item| if (item.is_usable != 0) {
         field_values[active_count] = item.id;
 
         field_names[active_count] = if (std.mem.eql(u8, "STARBORN", item.english_name))
@@ -24,7 +24,7 @@ pub const Id = gen: {
     break :gen @Enum(u24, .exhaustive, field_names[0..active_count], field_values[0..active_count]);
 };
 
-pub const HeroData = struct {
+pub const Entry = struct {
     id: u24,
     name: LangString,
     english_name: [:0]const u8,
@@ -80,7 +80,7 @@ pub const HeroData = struct {
     hero_pixel_walk: []const u8,
     nestcoop_success_action: []const u8,
 
-    pub fn getId(h: *const HeroData) Id {
+    pub fn getId(h: *const Entry) Id {
         return @enumFromInt(h.id);
     }
 };

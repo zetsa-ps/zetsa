@@ -8,8 +8,8 @@ pub fn run(io: Io, stream: net.Stream, gpa: Allocator) Io.Cancelable!void {
     log.info("new connection from {f}", .{stream.socket.address});
     defer log.info("client from {f} disconnected", .{stream.socket.address});
 
-    var store_data: logic.StoreData = .init;
-    defer store_data.deinit(gpa);
+    var player_store: logic.PlayerStore = .init;
+    defer player_store.deinit(gpa);
 
     var read_buffer: [config.recv_buffer_size]u8 = undefined;
     var reader = stream.reader(io, &read_buffer);
@@ -33,7 +33,7 @@ pub fn run(io: Io, stream: net.Stream, gpa: Allocator) Io.Cancelable!void {
             error.EndOfStream => return, // Client disconnected.
         };
 
-        messaging.dispatch(io, gpa, &store_data, &msg, &writer.interface) catch |err| switch (err) {
+        messaging.dispatch(io, gpa, &player_store, &msg, &writer.interface) catch |err| switch (err) {
             error.Canceled => |e| return e,
             error.WriteFailed => switch (writer.err.?) {
                 error.Canceled => |e| return e,

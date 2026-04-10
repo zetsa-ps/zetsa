@@ -1,13 +1,13 @@
-pub const data: []const HeroLevelData = @import("tables/hero_level");
+pub const list: []const Entry = @import("tables/hero_level");
 
-pub fn getById(id: u32) ?HeroLevelData {
-    for (data) |lv| if (lv.lv == id) return lv;
+pub fn getById(id: u32) ?Entry {
+    for (list) |lv| if (lv.lv == id) return lv;
     return null;
 }
 
 pub const Level = enum(u8) {
-    min = data[0].lv,
-    max = data[data.len - 1].lv,
+    min = list[0].lv,
+    max = list[list.len - 1].lv,
     _,
 
     pub fn toInt(level: Level) u8 {
@@ -15,7 +15,7 @@ pub const Level = enum(u8) {
     }
 };
 
-pub const HeroLevelData = struct {
+pub const Entry = struct {
     lv: u8,
     exp: u32,
     condition: []const u32,

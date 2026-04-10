@@ -1,17 +1,16 @@
 pub fn packGroupManagers(
-    store_data: *StoreData,
+    player_store: *PlayerStore,
     group_mgrs: *std.ArrayList(pb.GroupManager),
     group_mgrs_buf: []pb.GroupManager,
     groups_buf: []pb.Group,
     group_heros_buf: []pb.GroupHeroPos,
 ) void {
-    const formations_per_group = FormationStore.Formation.count;
-    const heros_per_formation = FormationStore.Formation.HeroPos.count;
+    const formations_per_group = PlayerStore.Lineup.Formation.count;
+    const heros_per_formation = PlayerStore.Lineup.Formation.HeroPos.count;
 
     group_mgrs.* = .initBuffer(group_mgrs_buf);
 
-    const formation_store = &store_data.formation;
-    var group_iterator = formation_store.group_map.iterator();
+    var group_iterator = player_store.lineup.group_map.iterator();
     var group_i: usize = 0;
 
     while (group_iterator.next()) |entry| : (group_i += 1) {
@@ -34,7 +33,7 @@ pub fn packGroupManagers(
             var group: pb.Group = .{
                 .id = @intCast(i + 1),
                 .control = if (control.toHeroId()) |id|
-                    logic.Uuid.hero(store_data.player_id, id).toInt()
+                    logic.Uuid.hero(player_store.id, id).toInt()
                 else
                     null,
                 .group_name = name.view(),
@@ -47,7 +46,7 @@ pub fn packGroupManagers(
                     continue;
                 };
 
-                const uuid: logic.Uuid = .hero(store_data.player_id, hero_id);
+                const uuid: logic.Uuid = .hero(player_store.id, hero_id);
                 group.heros.appendAssumeCapacity(.{ .hero_id = uuid.toInt() });
             }
 
@@ -58,8 +57,7 @@ pub fn packGroupManagers(
     }
 }
 
-const FormationStore = StoreData.FormationStore;
-const StoreData = logic.StoreData;
+const PlayerStore = logic.PlayerStore;
 
 const logic = @import("logic.zig");
 

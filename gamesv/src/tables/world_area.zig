@@ -1,16 +1,16 @@
-pub const data: []const WorldArea = @import("tables/world_area");
+pub const list: []const Entry = @import("tables/world_area");
 
-pub fn getById(id: u32) ?WorldArea {
-    for (data) |a| if (a.id == id) return a;
+pub fn getById(id: u32) ?Entry {
+    for (list) |a| if (a.id == id) return a;
     return null;
 }
 
-pub fn getSceneMainArea(scene_id: u32) ?WorldArea {
-    for (data) |a| if (a.scene_id == scene_id and a.main_area == 1) return a;
+pub fn getSceneMainArea(scene_id: u32) ?Entry {
+    for (list) |a| if (a.scene_id == scene_id and a.main_area == 1) return a;
     return null;
 }
 
-pub fn AABBArea(td: *const WorldArea) f32 {
+pub fn AABBArea(td: *const Entry) f32 {
     return calculateAABBArea(td.vertices);
 }
 
@@ -32,7 +32,7 @@ fn calculateAABBArea(area_vertices: []const [3]f32) f32 {
     return (max_x - min_x) * (max_z - min_z);
 }
 
-pub fn isInArea(td: *const WorldArea, pos: [3]f32, need_height_check: bool) bool {
+pub fn isInArea(td: *const Entry, pos: [3]f32, need_height_check: bool) bool {
     if (need_height_check) {
         const height: f32 = @floatFromInt(td.height);
         if (pos[1] < td.area_pos[1] or pos[1] > td.area_pos[1] + if (height > 0.0) height else 50.0) return false;
@@ -66,10 +66,10 @@ pub fn calculateBelongArea(
     position: [3]f32,
     need_height_check: bool,
 ) u32 {
-    var best_area: ?WorldArea = null;
-    var best_score: f32 = @import("std").math.floatMax(f32);
+    var best_area: ?Entry = null;
+    var best_score: f32 = std.math.floatMax(f32);
 
-    for (data) |area| {
+    for (list) |area| {
         if (area.scene_id != scene_id) continue;
         if (!isInArea(&area, position, need_height_check)) continue;
 
@@ -83,7 +83,7 @@ pub fn calculateBelongArea(
     return if (best_area) |area| area.id else 0;
 }
 
-pub const WorldArea = struct {
+pub const Entry = struct {
     id: u32,
     name: LangString,
     scene_id: u32,
@@ -109,3 +109,4 @@ pub const WorldArea = struct {
 };
 
 const LangString = @import("../tables.zig").LangString;
+const std = @import("std");

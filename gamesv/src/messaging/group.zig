@@ -1,7 +1,7 @@
 pub fn changeHeroGroupIndex(txn: Transaction(.CSProtoChangeHeroGroupIndex)) !void {
     const log = std.log.scoped(.CSProtoChangeHeroGroupIndex);
 
-    const store_data = txn.any.store_data;
+    const player_store = txn.any.player_store;
 
     if (txn.request.type != 1) {
         log.warn("group type {?d} is not implemented yet.", .{txn.request.type});
@@ -13,10 +13,10 @@ pub fn changeHeroGroupIndex(txn: Transaction(.CSProtoChangeHeroGroupIndex)) !voi
         return;
     };
 
-    if (client_group.heros.items.len > FormationStore.Formation.HeroPos.count) {
+    if (client_group.heros.items.len > PlayerStore.Lineup.Formation.HeroPos.count) {
         log.warn(
             "hero count exceeded ({d}/{d})",
-            .{ client_group.heros.items.len, FormationStore.Formation.HeroPos.count },
+            .{ client_group.heros.items.len, PlayerStore.Lineup.Formation.HeroPos.count },
         );
         return;
     }
@@ -26,12 +26,12 @@ pub fn changeHeroGroupIndex(txn: Transaction(.CSProtoChangeHeroGroupIndex)) !voi
         return;
     };
 
-    if (formation_id > FormationStore.Formation.count or formation_id == 0) {
+    if (formation_id > PlayerStore.Lineup.Formation.count or formation_id == 0) {
         log.warn("illegal group.id: {d}", .{formation_id});
         return;
     }
 
-    var new_heros: FormationStore.Formation.Heros = @splat(.empty);
+    var new_heros: PlayerStore.Lineup.Formation.Heros = @splat(.empty);
 
     for (client_group.heros.items, 0..) |hero_pos, i| {
         if (hero_pos.hero_id) |raw_uuid| {
@@ -41,7 +41,7 @@ pub fn changeHeroGroupIndex(txn: Transaction(.CSProtoChangeHeroGroupIndex)) !voi
                 return;
             };
 
-            if (!store_data.hero_data.item_map.contains(hero_id)) {
+            if (!player_store.hero.item_map.contains(hero_id)) {
                 log.warn("hero '{t}' is not unlocked", .{hero_id});
                 return;
             }
@@ -50,26 +50,26 @@ pub fn changeHeroGroupIndex(txn: Transaction(.CSProtoChangeHeroGroupIndex)) !voi
         }
     }
 
-    const formation_group = store_data.formation.group_map.getPtr(.world).?;
+    const formation_group = player_store.lineup.group_map.getPtr(.world).?;
     formation_group.formation_heros[formation_id - 1] = new_heros;
 
     {
         const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
         defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
 
-        store.player.saveFormationTable(txn.any.io, store_data) catch |err| {
+        store.player.saveFormationTable(txn.any.io, player_store) catch |err| {
             log.warn("failed to save formation table: {t}", .{err});
             return;
         };
     }
 
     var group_mgrs: std.ArrayList(pb.GroupManager) = .empty;
-    var group_mgrs_buf: [FormationStore.GroupMap.len]pb.GroupManager = undefined;
-    var groups_buf: [group_mgrs_buf.len * FormationStore.Formation.count]pb.Group = undefined;
-    var group_heros_buf: [FormationStore.Formation.HeroPos.count * groups_buf.len]pb.GroupHeroPos = undefined;
+    var group_mgrs_buf: [PlayerStore.Lineup.GroupMap.len]pb.GroupManager = undefined;
+    var groups_buf: [group_mgrs_buf.len * PlayerStore.Lineup.Formation.count]pb.Group = undefined;
+    var group_heros_buf: [PlayerStore.Lineup.Formation.HeroPos.count * groups_buf.len]pb.GroupHeroPos = undefined;
 
     encoding.packGroupManagers(
-        store_data,
+        player_store,
         &group_mgrs,
         &group_mgrs_buf,
         &groups_buf,
@@ -95,8 +95,7 @@ pub fn switchWorldGroupControl(txn: Transaction(.CSProtoSwitchWorldGroupControl)
 
     const uuid: logic.Uuid = @bitCast(raw_uuid);
 
-    const formation_store = &txn.any.store_data.formation;
-    const world_group = formation_store.group_map.getPtr(.world).?;
+    const world_group = txn.any.player_store.lineup.group_map.getPtr(.world).?;
     const formation_index = world_group.cur_formation;
 
     for (world_group.formation_heros[formation_index]) |hero_pos| {
@@ -114,7 +113,7 @@ pub fn switchWorldGroupControl(txn: Transaction(.CSProtoSwitchWorldGroupControl)
         const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
         defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
 
-        store.player.saveFormationTable(txn.any.io, txn.any.store_data) catch |err| {
+        store.player.saveFormationTable(txn.any.io, txn.any.player_store) catch |err| {
             log.warn("failed to save formation table: {t}", .{err});
             return;
         };
@@ -123,9 +122,7 @@ pub fn switchWorldGroupControl(txn: Transaction(.CSProtoSwitchWorldGroupControl)
     try txn.respond(.{});
 }
 
-const FormationStore = StoreData.FormationStore;
-
-const StoreData = logic.StoreData;
+const PlayerStore = logic.PlayerStore;
 const Transaction = messaging.Transaction;
 
 const store = @import("../store.zig");

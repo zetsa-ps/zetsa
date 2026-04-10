@@ -1,12 +1,12 @@
-pub const data: []const WorldBorthPos = @import("tables/world_borthpos");
+pub const list: []const Entry = @import("tables/world_borthpos");
 
-pub fn getById(id: u32) ?WorldBorthPos {
-    for (data) |h| if (h.id == id) return h;
+pub fn getById(id: u32) ?Entry {
+    for (list) |h| if (h.id == id) return h;
     return null;
 }
 
-pub fn queryCityBirthPos(map_id: u32) ?WorldBorthPos {
-    for (data) |world_borthpos| {
+pub fn queryCityBirthPos(map_id: u32) ?Entry {
+    for (list) |world_borthpos| {
         if (world_borthpos.city_id == map_id and world_borthpos.main_point == 1) {
             return world_borthpos;
         }
@@ -15,7 +15,7 @@ pub fn queryCityBirthPos(map_id: u32) ?WorldBorthPos {
     return null;
 }
 
-pub const WorldBorthPos = struct {
+pub const Entry = struct {
     id: u32,
     name: LangString,
     city_id: u32,

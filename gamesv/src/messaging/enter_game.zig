@@ -12,10 +12,10 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
     };
 
     if (store.Account.fetch(txn.any.io, &open_id)) |account| {
-        txn.any.store_data.player_id = @enumFromInt(account.player_id);
-        store.player.loadStoreData(txn.any.io, txn.any.store_data) catch |err| {
+        txn.any.player_store.id = @enumFromInt(account.player_id);
+        store.player.loadAll(txn.any.io, txn.any.player_store) catch |err| {
             log.warn(
-                "failed to load StoreData for player with id {d}: {t}",
+                "failed to load store of player with id {d}: {t}",
                 .{ account.player_id, err },
             );
             return;
@@ -32,23 +32,23 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
                 error.InvalidOpenID, error.InputOutput => return,
             };
 
-            txn.any.store_data.player_id = @enumFromInt(account.player_id);
+            txn.any.player_store.id = @enumFromInt(account.player_id);
 
-            logic.gameplay.onFirstEntrance(txn.any.store_data);
+            logic.gameplay.onFirstEntrance(txn.any.player_store);
 
-            store.player.saveStoreData(txn.any.io, txn.any.store_data) catch |save_err| {
-                log.warn("failed to save StoreData upon first entrance: {t}", .{save_err});
+            store.player.saveAll(txn.any.io, txn.any.player_store) catch |save_err| {
+                log.warn("failed to save player store upon first entrance: {t}", .{save_err});
                 return;
             };
         },
     }
 
-    const store_data = txn.any.store_data;
-    const player_id = store_data.player_id.toInt();
-    const basic_info = &store_data.basic_info;
+    const player_store = txn.any.player_store;
+    const player_id = player_store.id.toInt();
+    const basic_info = &player_store.basic_info;
 
-    var heros_buffer: [tables.hero.data.len]pb.HeroItemInfo = undefined;
-    var battle_heros_buffer: [tables.hero.data.len]pb.GroupHero = undefined;
+    var heros_buffer: [tables.hero.list.len]pb.HeroItemInfo = undefined;
+    var battle_heros_buffer: [tables.hero.list.len]pb.GroupHero = undefined;
 
     var player_data: pb.PlayerData = .{
         .basic_info = .{
@@ -108,38 +108,36 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
         .guide_infos = .{ .infos = .empty },
     };
 
-    var system_skill_levels_buffer: [HeroData.ItemMap.len * HeroData.SystemSkillLevel.count]u32 = undefined;
+    var system_skill_levels_buffer: [PlayerStore.Hero.ItemMap.len * PlayerStore.Hero.SystemSkillLevel.count]u32 = undefined;
 
-    var hero_items = store_data.hero_data.item_map.iterator();
+    var hero_items = player_store.hero.item_map.iterator();
     var hero_i: usize = 0;
 
     while (hero_items.next()) |entry| {
         const hero_id = entry.key;
-        const item = entry.value;
+        const hero = entry.value;
 
-        if (@intFromEnum(hero_id) == @as(u32, switch (store_data.basic_info.sex) {
+        if (@intFromEnum(hero_id) == @as(u32, switch (player_store.basic_info.sex) {
             .female => tables.game.avatar_hero_id_male,
             .male => tables.game.avatar_hero_id_female,
         })) continue;
 
-        const battle_hero = store_data.hero_data.battle_map.getPtr(hero_id).?;
-
-        const uuid: logic.Uuid = .hero(store_data.player_id, hero_id);
+        const uuid: logic.Uuid = .hero(player_store.id, hero_id);
 
         var system_skill_levels: ArrayList(u32) = .initBuffer(
-            system_skill_levels_buffer[hero_i * HeroData.SystemSkillLevel.count ..][0..HeroData.SystemSkillLevel.count],
+            system_skill_levels_buffer[hero_i * PlayerStore.Hero.SystemSkillLevel.count ..][0..PlayerStore.Hero.SystemSkillLevel.count],
         );
 
-        for (item.system_skill_levels) |level|
+        for (hero.system_skill_levels) |level|
             system_skill_levels.appendAssumeCapacity(@intFromEnum(level));
 
         player_data.heros_info.?.heros.appendAssumeCapacity(.{
             .guid = uuid.toInt(),
-            .type = logic.StoreData.HeroData.Type.byHeroId(hero_id).toHeroType(),
+            .type = PlayerStore.Hero.Type.byHeroId(hero_id).toHeroType(),
             .conf_id = @intFromEnum(hero_id),
-            .hero_lv = item.lv.toInt(),
-            .hero_exp = item.exp,
-            .hero_rank = item.rank.toInt(),
+            .hero_lv = hero.lv.toInt(),
+            .hero_exp = hero.exp,
+            .hero_rank = hero.rank.toInt(),
             .system_skill_levels = system_skill_levels,
 
             .wguid = 0,
@@ -155,9 +153,9 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
 
         player_data.heros_info.?.battle_infos.appendAssumeCapacity(.{
             .hero_id = uuid.toInt(),
-            .hp = battle_hero.hp.toInt(),
-            .sp = battle_hero.sp.toInt(),
-            .alive_state = battle_hero.hp.aliveState().toAliveStateType(),
+            .hp = hero.hp.toInt(),
+            .sp = hero.sp.toInt(),
+            .alive_state = hero.hp.aliveState().toAliveStateType(),
             .time = @intCast(txn.any.time.toSeconds()),
             .rescue_val = 0,
         });
@@ -165,12 +163,12 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
         hero_i += 1;
     }
 
-    var group_mgrs_buf: [FormationStore.GroupMap.len]pb.GroupManager = undefined;
-    var groups_buf: [group_mgrs_buf.len * FormationStore.Formation.count]pb.Group = undefined;
-    var group_heros_buf: [FormationStore.Formation.HeroPos.count * groups_buf.len]pb.GroupHeroPos = undefined;
+    var group_mgrs_buf: [PlayerStore.Lineup.GroupMap.len]pb.GroupManager = undefined;
+    var groups_buf: [group_mgrs_buf.len * PlayerStore.Lineup.Formation.count]pb.Group = undefined;
+    var group_heros_buf: [PlayerStore.Lineup.Formation.HeroPos.count * groups_buf.len]pb.GroupHeroPos = undefined;
 
     encoding.packGroupManagers(
-        store_data,
+        player_store,
         &player_data.group_mgrs,
         &group_mgrs_buf,
         &groups_buf,
@@ -205,10 +203,7 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
     try txn.any.send(.CSProtoGMSystemCloseSync, .{ .syslist = syslist });
 }
 
-const HeroData = StoreData.HeroData;
-const FormationStore = StoreData.FormationStore;
-
-const StoreData = logic.StoreData;
+const PlayerStore = logic.PlayerStore;
 const ArrayList = std.ArrayList;
 
 const Transaction = messaging.Transaction;
