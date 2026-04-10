@@ -2,6 +2,8 @@ const weak_key: []const u8 = &.{ 0x52, 0x54, 0x45, 0x57, 0x67, 0x64, 0x73, 0x74,
 
 pub const unencrypted_head_len: usize = 7;
 
+const chunk_size: usize = 128;
+
 offset: usize,
 full_size: Io.Limit,
 
@@ -20,37 +22,22 @@ pub const Reader = struct {
     fn stream(io_r: *Io.Reader, io_w: *Io.Writer, limit: Io.Limit) Io.Reader.StreamError!usize {
         const r: *Reader = @alignCast(@fieldParentPtr("interface", io_r));
         const t = &r.translator;
+        const to_read = try r.remainingLimitUnbuffered(limit);
 
-        const to_read = limit.min(
-            t.full_size.subtract(t.offset) orelse return error.EndOfStream,
-        );
+        var chunk: [chunk_size]u8 = undefined;
+        var bufs: [1][]u8 = .{chunk[0..@min(chunk.len, to_read)]};
 
-        if (to_read == .nothing)
-            return error.EndOfStream;
+        const n_read = try r.source.readVec(&bufs);
+        t.xor(chunk[0..n_read]);
 
-        var chunk: [128]u8 = undefined;
-        var vec: [1][]u8 = .{chunk[0..@min(
-            chunk.len,
-            to_read.toInt() orelse return error.EndOfStream,
-        )]};
-
-        const n = try r.source.readVec(&vec);
-        t.xor(chunk[0..n]);
-
-        try io_w.writeAll(chunk[0..n]);
-        return n;
+        try io_w.writeAll(chunk[0..n_read]);
+        return n_read;
     }
 
     fn readVec(io_r: *Io.Reader, data: [][]u8) Io.Reader.Error!usize {
         const r: *Reader = @alignCast(@fieldParentPtr("interface", io_r));
         const t = &r.translator;
-
-        const read_limit = t.full_size.subtract(t.offset) orelse return error.EndOfStream;
-
-        if (read_limit == .nothing)
-            return error.EndOfStream;
-
-        const to_read = read_limit.toInt().?;
+        const to_read = try r.remainingLimitUnbuffered(.unlimited);
 
         if (data[0].len == 0) {
             // Read into `io_r.buffer`
@@ -78,7 +65,7 @@ pub const Reader = struct {
             // If the caller is able to consume more than the limit of this Reader,
             // truncate the buffers.
             if (can_read > to_read) {
-                can_read = buf.len;
+                can_read -= buf.len;
                 const truncated_len = to_read - can_read;
                 buf.len = truncated_len;
 
@@ -100,6 +87,28 @@ pub const Reader = struct {
         return n_read;
     }
 
+    fn discard(io_r: *Io.Reader, limit: Io.Limit) Io.Reader.Error!usize {
+        const r: *Reader = @alignCast(@fieldParentPtr("interface", io_r));
+        const t = &r.translator;
+        const to_discard = try r.remainingLimitUnbuffered(limit);
+
+        const n_discarded = try r.source.discard(.limited(to_discard));
+        t.offset += n_discarded;
+
+        return n_discarded;
+    }
+
+    fn remainingLimitUnbuffered(r: *const Reader, user_limit: Io.Limit) Io.Reader.Error!usize {
+        const read_limit = user_limit.min(
+            r.translator.full_size.subtract(r.translator.offset) orelse return error.EndOfStream,
+        );
+
+        if (read_limit == .nothing)
+            return error.EndOfStream;
+
+        return read_limit.toInt().?;
+    }
+
     // Includes the data available in Io.Reader's buffer.
     pub fn remaining(r: *const Reader) usize {
         const buffered_len = r.interface.end - r.interface.seek;
@@ -112,7 +121,11 @@ pub fn reader(t: Translator, source: *Io.Reader, buffer: []u8) Reader {
         .buffer = buffer,
         .seek = 0,
         .end = 0,
-        .vtable = &.{ .stream = Reader.stream, .readVec = Reader.readVec },
+        .vtable = &.{
+            .stream = Reader.stream,
+            .readVec = Reader.readVec,
+            .discard = Reader.discard,
+        },
     } };
 }
 
@@ -155,7 +168,7 @@ pub const Writer = struct {
     // Less efficient than `writeBuf`. Uses intermediate chunks.
     fn writeConstBuf(w: *Writer, buf: []const u8) Io.Writer.Error!usize {
         var cursor = buf;
-        var chunk: [128]u8 = undefined;
+        var chunk: [chunk_size]u8 = undefined;
 
         while (cursor.len != 0) {
             const to_write = @min(chunk.len, cursor.len);
