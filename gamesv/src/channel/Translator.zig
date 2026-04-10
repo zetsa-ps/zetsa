@@ -41,13 +41,70 @@ pub const Reader = struct {
         return n;
     }
 
+    fn readVec(io_r: *Io.Reader, data: [][]u8) Io.Reader.Error!usize {
+        const r: *Reader = @alignCast(@fieldParentPtr("interface", io_r));
+        const t = &r.translator;
+
+        const read_limit = t.full_size.subtract(t.offset) orelse return error.EndOfStream;
+
+        if (read_limit == .nothing)
+            return error.EndOfStream;
+
+        const to_read = read_limit.toInt().?;
+
+        if (data[0].len == 0) {
+            // Read into `io_r.buffer`
+
+            var bufs = [1][]u8{io_r.buffer[io_r.end..][0..@min(io_r.buffer.len - io_r.end, to_read)]};
+            const n_read = try r.source.readVec(&bufs);
+
+            t.xor(bufs[0][0..n_read]);
+            io_r.end += n_read;
+            return 0;
+        }
+
+        // Last buffer length to be restored if truncated.
+        const last_buf_len = data[data.len - 1].len;
+        defer data[data.len - 1].len = last_buf_len;
+
+        // The number of bytes the caller is ready to consume.
+        var can_read: usize = 0;
+        var n_bufs: usize = 0;
+
+        for (data) |*buf| {
+            can_read += buf.len;
+            n_bufs += 1;
+
+            // If the caller is able to consume more than the limit of this Reader,
+            // truncate the buffers.
+            if (can_read > to_read) {
+                can_read = buf.len;
+                const truncated_len = to_read - can_read;
+                buf.len = truncated_len;
+
+                break;
+            } else if (can_read == to_read) break;
+        }
+
+        const n_read = try r.source.readVec(data[0..n_bufs]);
+        var to_xor: usize = n_read;
+
+        for (data[0..n_bufs]) |buf| {
+            if (to_xor == 0) break;
+
+            const len = @min(buf.len, to_xor);
+            t.xor(buf[0..len]);
+            to_xor -= len;
+        }
+
+        return n_read;
+    }
+
     // Includes the data available in Io.Reader's buffer.
     pub fn remaining(r: *const Reader) usize {
         const buffered_len = r.interface.end - r.interface.seek;
         return r.translator.full_size.subtract(r.translator.offset).?.toInt().? + buffered_len;
     }
-
-    // TODO: implement readVec for xoring without intermediate buffers.
 };
 
 pub fn reader(t: Translator, source: *Io.Reader, buffer: []u8) Reader {
@@ -55,7 +112,7 @@ pub fn reader(t: Translator, source: *Io.Reader, buffer: []u8) Reader {
         .buffer = buffer,
         .seek = 0,
         .end = 0,
-        .vtable = &.{ .stream = Reader.stream },
+        .vtable = &.{ .stream = Reader.stream, .readVec = Reader.readVec },
     } };
 }
 
