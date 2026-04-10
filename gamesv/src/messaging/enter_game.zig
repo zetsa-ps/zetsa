@@ -113,9 +113,14 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
     var hero_items = store_data.hero_data.item_map.iterator();
     var hero_i: usize = 0;
 
-    while (hero_items.next()) |entry| : (hero_i += 1) {
+    while (hero_items.next()) |entry| {
         const hero_id = entry.key;
         const item = entry.value;
+
+        if (@intFromEnum(hero_id) == @as(u32, switch (store_data.basic_info.sex) {
+            .female => tables.game.avatar_hero_id_male,
+            .male => tables.game.avatar_hero_id_female,
+        })) continue;
 
         const battle_hero = store_data.hero_data.battle_map.getPtr(hero_id).?;
 
@@ -130,7 +135,7 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
 
         player_data.heros_info.?.heros.appendAssumeCapacity(.{
             .guid = uuid.toInt(),
-            .type = item.type.toHeroType(),
+            .type = logic.StoreData.HeroData.Type.byHeroId(hero_id).toHeroType(),
             .conf_id = @intFromEnum(hero_id),
             .hero_lv = item.lv.toInt(),
             .hero_exp = item.exp,
@@ -156,6 +161,8 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
             .time = @intCast(txn.any.time.toSeconds()),
             .rescue_val = 0,
         });
+
+        hero_i += 1;
     }
 
     var group_mgrs_buf: [FormationStore.GroupMap.len]pb.GroupManager = undefined;

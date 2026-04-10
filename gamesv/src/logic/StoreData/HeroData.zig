@@ -14,15 +14,13 @@ pub const HeroItem = struct {
     exp: u32,
     rank: Rank,
     system_skill_levels: [SystemSkillLevel.count]SystemSkillLevel,
-    type: Type,
 
-    pub fn initDefault(id: ID) HeroItem {
+    pub fn initDefault() HeroItem {
         return .{
             .lv = .min,
             .exp = 0,
             .rank = .min,
             .system_skill_levels = @splat(.min),
-            .type = .byHeroId(id),
         };
     }
 };
@@ -86,7 +84,7 @@ pub fn unlockById(hero_data: *HeroData, id: ID) void {
     if (hero_data.item_map.contains(id))
         return;
 
-    hero_data.item_map.put(id, .initDefault(id));
+    hero_data.item_map.put(id, .initDefault());
     hero_data.battle_map.put(id, .initDefault(id));
 }
 
@@ -124,7 +122,7 @@ pub const Type = enum {
         })));
     }
 
-    fn byHeroId(id: ID) Type {
+    pub fn byHeroId(id: ID) Type {
         return switch (@intFromEnum(id)) {
             tables.game.avatar_hero_id_male,
             tables.game.avatar_hero_id_female,

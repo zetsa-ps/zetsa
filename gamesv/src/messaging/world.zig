@@ -314,13 +314,20 @@ fn sendObjBattleInfoSync(txn: *AnyTransaction) !void {
     const player_id = txn.store_data.player_id;
     const hero_data = &txn.store_data.hero_data;
 
-    var infos_buf: [StoreData.HeroData.ItemMap.len]pb.ObjBattleInfo = undefined;
+    var infos_buf: [StoreData.HeroData.ItemMap.len - 1]pb.ObjBattleInfo = undefined;
     var infos: std.ArrayList(pb.ObjBattleInfo) = .initBuffer(&infos_buf);
 
     var battle_heros = hero_data.battle_map.iterator();
 
     while (battle_heros.next()) |entry| {
-        const uuid: logic.Uuid = .hero(player_id, entry.key);
+        const hero_id = entry.key;
+
+        if (@intFromEnum(hero_id) == @as(u32, switch (txn.store_data.basic_info.sex) {
+            .female => tables.game.avatar_hero_id_male,
+            .male => tables.game.avatar_hero_id_female,
+        })) continue;
+
+        const uuid: logic.Uuid = .hero(player_id, hero_id);
 
         infos.appendAssumeCapacity(.{
             .uuid = uuid.toInt(),
@@ -338,7 +345,7 @@ fn sendBattleHeroInfoSync(txn: *AnyTransaction) !void {
     const player_id = txn.store_data.player_id;
     const hero_data = &txn.store_data.hero_data;
 
-    var heros_buf: [StoreData.HeroData.ItemMap.len]pb.FightHeroInfo = undefined;
+    var heros_buf: [StoreData.HeroData.ItemMap.len - 1]pb.FightHeroInfo = undefined;
     var heros: std.ArrayList(pb.FightHeroInfo) = .initBuffer(&heros_buf);
 
     var oinfo_buf: [1]pb.FightOrnamentInfo = undefined;
@@ -353,10 +360,17 @@ fn sendBattleHeroInfoSync(txn: *AnyTransaction) !void {
     var it = hero_data.item_map.iterator();
 
     while (it.next()) |entry| {
-        const conf = tables.hero.getById(@intFromEnum(entry.key)).?;
-        const battle_hero = hero_data.battle_map.getPtr(entry.key).?;
+        const hero_id = entry.key;
 
-        const uuid: logic.Uuid = .hero(player_id, entry.key);
+        if (@intFromEnum(hero_id) == @as(u32, switch (txn.store_data.basic_info.sex) {
+            .female => tables.game.avatar_hero_id_male,
+            .male => tables.game.avatar_hero_id_female,
+        })) continue;
+
+        const conf = tables.hero.getById(@intFromEnum(hero_id)).?;
+        const battle_hero = hero_data.battle_map.getPtr(hero_id).?;
+
+        const uuid: logic.Uuid = .hero(player_id, hero_id);
 
         var skill_infos: pb.HeroSkillInfos = .{ .skills = try .initCapacity(txn.arena, conf.skill_list.len) };
 
@@ -402,9 +416,9 @@ fn sendBattleHeroInfoSync(txn: *AnyTransaction) !void {
 fn sendHeroAttrInfoSync(txn: *AnyTransaction) !void {
     const player_id = txn.store_data.player_id;
 
-    var heros_buf: [StoreData.HeroData.ItemMap.len]pb.HeroAttrInfo = undefined;
-    var modules_buf: [StoreData.HeroData.ItemMap.len]pb.HeroAttrModuleInfo = undefined;
-    var sub_modules_buf: [StoreData.HeroData.ItemMap.len]pb.HeroAttrSubModuleInfo = undefined;
+    var heros_buf: [StoreData.HeroData.ItemMap.len - 1]pb.HeroAttrInfo = undefined;
+    var modules_buf: [StoreData.HeroData.ItemMap.len - 1]pb.HeroAttrModuleInfo = undefined;
+    var sub_modules_buf: [StoreData.HeroData.ItemMap.len - 1]pb.HeroAttrSubModuleInfo = undefined;
 
     var heros: std.ArrayList(pb.HeroAttrInfo) = .initBuffer(&heros_buf);
 
@@ -415,8 +429,15 @@ fn sendHeroAttrInfoSync(txn: *AnyTransaction) !void {
     var it = txn.store_data.hero_data.item_map.iterator();
 
     while (it.next()) |entry| {
-        const uuid: logic.Uuid = .hero(player_id, entry.key);
-        const conf = tables.hero.getById(@intFromEnum(entry.key)).?;
+        const hero_id = entry.key;
+
+        if (@intFromEnum(hero_id) == @as(u32, switch (txn.store_data.basic_info.sex) {
+            .female => tables.game.avatar_hero_id_male,
+            .male => tables.game.avatar_hero_id_female,
+        })) continue;
+
+        const uuid: logic.Uuid = .hero(player_id, hero_id);
+        const conf = tables.hero.getById(@intFromEnum(hero_id)).?;
 
         var skills: std.ArrayList(pb.UnitSkillInfo) = try .initCapacity(txn.arena, conf.skill_list.len + conf.aerial_skill_list.len + conf.passive_skill_list.len + conf.backup_skill_list.len + 1);
 
