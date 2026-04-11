@@ -18,6 +18,7 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
 
         const map: PlayerStore.World.Map = .initByBorthPos(&borth_pos);
         player_store.world.maps.put(map_kind, map);
+        player_store.world.attrs.active_kind = map_kind;
 
         const io = txn.any.io;
 
