@@ -1,32 +1,73 @@
-pub const SavePlayerStoreError = store.SaveAttrsetError;
+pub const SaveError = Io.Cancelable || store.SaveAttrsetError;
 
 // Saves all of the `PlayerStore` modules.
-pub fn saveAll(io: Io, player_store: *const PlayerStore) SavePlayerStoreError!void {
-    const id = player_store.id.toInt();
-    var path_buf: [max_path_bytes]u8 = undefined;
+pub fn saveAll(io: Io, player_store: *const PlayerStore) SaveError!void {
+    const saveFns = .{
+        saveBasicInfo,
+        saveHeroTable,
+        saveWorldMapTable,
+        saveWorldAttributes,
+        saveFormationTable,
+    };
+
+    const Result = union(enum) {
+        save: SaveError!void,
+    };
+
+    var buffer: [saveFns.len]Result = undefined;
+    var select: Io.Select(Result) = .init(io, &buffer);
+
+    defer select.cancelDiscard();
+    var outstanding = saveFns.len;
+
+    inline for (saveFns) |saveFn|
+        select.async(.save, saveFn, .{ io, player_store });
+
+    while (outstanding != 0) : (outstanding -= 1) {
+        switch (try select.await()) {
+            .save => |result| try result,
+        }
+    }
+}
+
+pub fn saveBasicInfo(io: Io, player_store: *const PlayerStore) SaveError!void {
+    try io.checkCancel();
 
     const old_cancel_protection = io.swapCancelProtection(.blocked);
     defer _ = io.swapCancelProtection(old_cancel_protection);
 
-    const basic_info_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/basicinfo", .{id}) catch unreachable;
-    try store.saveAttrset(PlayerStore.BasicInfo, io, basic_info_path, &player_store.basic_info);
+    const id = player_store.id.toInt();
+    var path_buf: [max_path_bytes]u8 = undefined;
 
-    try saveWorldMapTable(io, player_store);
-    try saveWorldAttributes(io, player_store);
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/basicinfo", .{id}) catch unreachable;
+    try store.saveAttrset(PlayerStore.BasicInfo, io, path, &player_store.basic_info);
+}
 
-    const hero_tab_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/herotab", .{id}) catch unreachable;
+pub fn saveHeroTable(io: Io, player_store: *const PlayerStore) SaveError!void {
+    try io.checkCancel();
+
+    const old_cancel_protection = io.swapCancelProtection(.blocked);
+    defer _ = io.swapCancelProtection(old_cancel_protection);
+
+    const id = player_store.id.toInt();
+    var path_buf: [max_path_bytes]u8 = undefined;
+
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/herotab", .{id}) catch unreachable;
     try store.saveEnumMap(
         PlayerStore.Hero.ItemMap.Key,
         PlayerStore.Hero.ItemMap.Value,
         io,
-        hero_tab_path,
+        path,
         &player_store.hero.item_map,
     );
-
-    try saveFormationTable(io, player_store);
 }
 
-pub fn saveWorldMapTable(io: Io, player_store: *const PlayerStore) SavePlayerStoreError!void {
+pub fn saveWorldMapTable(io: Io, player_store: *const PlayerStore) SaveError!void {
+    try io.checkCancel();
+
+    const old_cancel_protection = io.swapCancelProtection(.blocked);
+    defer _ = io.swapCancelProtection(old_cancel_protection);
+
     const id = player_store.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
@@ -40,7 +81,12 @@ pub fn saveWorldMapTable(io: Io, player_store: *const PlayerStore) SavePlayerSto
     );
 }
 
-pub fn saveWorldAttributes(io: Io, player_store: *const PlayerStore) SavePlayerStoreError!void {
+pub fn saveWorldAttributes(io: Io, player_store: *const PlayerStore) SaveError!void {
+    try io.checkCancel();
+
+    const old_cancel_protection = io.swapCancelProtection(.blocked);
+    defer _ = io.swapCancelProtection(old_cancel_protection);
+
     const id = player_store.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
@@ -48,7 +94,12 @@ pub fn saveWorldAttributes(io: Io, player_store: *const PlayerStore) SavePlayerS
     try store.saveAttrset(PlayerStore.World.Attrs, io, path, &player_store.world.attrs);
 }
 
-pub fn saveFormationTable(io: Io, player_store: *const PlayerStore) SavePlayerStoreError!void {
+pub fn saveFormationTable(io: Io, player_store: *const PlayerStore) SaveError!void {
+    try io.checkCancel();
+
+    const old_cancel_protection = io.swapCancelProtection(.blocked);
+    defer _ = io.swapCancelProtection(old_cancel_protection);
+
     const id = player_store.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
@@ -62,45 +113,96 @@ pub fn saveFormationTable(io: Io, player_store: *const PlayerStore) SavePlayerSt
     );
 }
 
-pub const LoadPlayerStoreError = store.LoadAttrsetError;
+pub const LoadError = store.LoadAttrsetError;
 
 // Loads all of the `PlayerStore` modules.
 // `out.player_id` must be valid.
-pub fn loadAll(io: Io, out: *PlayerStore) LoadPlayerStoreError!void {
+pub fn loadAll(io: Io, out: *PlayerStore) LoadError!void {
+    const loadFns = .{
+        loadBasicInfo,
+        loadHeroTable,
+        loadLineupTable,
+        loadWorldAttributes,
+        loadWorldMapTable,
+    };
+
+    const Result = union(enum) {
+        load: LoadError!void,
+    };
+
+    var buffer: [loadFns.len]Result = undefined;
+    var select: Io.Select(Result) = .init(io, &buffer);
+
+    defer select.cancelDiscard();
+    var outstanding = loadFns.len;
+
+    inline for (loadFns) |loadFn|
+        select.async(.load, loadFn, .{ io, out });
+
+    while (outstanding != 0) : (outstanding -= 1) {
+        switch (try select.await()) {
+            .load => |result| try result,
+        }
+    }
+}
+
+fn loadBasicInfo(io: Io, out: *PlayerStore) LoadError!void {
     const id = out.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
-    const basic_info_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/basicinfo", .{id}) catch unreachable;
-    try store.loadAttrset(PlayerStore.BasicInfo, io, basic_info_path, &out.basic_info);
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/basicinfo", .{id}) catch unreachable;
+    try store.loadAttrset(PlayerStore.BasicInfo, io, path, &out.basic_info);
+}
 
-    const world_attrs_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/worldattrs", .{id}) catch unreachable;
-    try store.loadAttrset(PlayerStore.World.Attrs, io, world_attrs_path, &out.world.attrs);
+fn loadHeroTable(io: Io, out: *PlayerStore) LoadError!void {
+    const id = out.id.toInt();
+    var path_buf: [max_path_bytes]u8 = undefined;
 
-    const world_map_tab_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/worldmaptab", .{id}) catch unreachable;
-    try store.loadEnumMap(
-        PlayerStore.World.Maps.Key,
-        PlayerStore.World.Maps.Value,
-        io,
-        world_map_tab_path,
-        &out.world.maps,
-    );
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/herotab", .{id}) catch unreachable;
 
-    const hero_tab_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/herotab", .{id}) catch unreachable;
     try store.loadEnumMap(
         PlayerStore.Hero.ItemMap.Key,
         PlayerStore.Hero.ItemMap.Value,
         io,
-        hero_tab_path,
+        path,
         &out.hero.item_map,
     );
+}
 
-    const lineup_tab_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/lineuptab", .{id}) catch unreachable;
+fn loadLineupTable(io: Io, out: *PlayerStore) LoadError!void {
+    const id = out.id.toInt();
+    var path_buf: [max_path_bytes]u8 = undefined;
+
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/lineuptab", .{id}) catch unreachable;
+
     try store.loadEnumMap(
         PlayerStore.Lineup.Group.Type,
         PlayerStore.Lineup.Group,
         io,
-        lineup_tab_path,
+        path,
         &out.lineup.group_map,
+    );
+}
+
+fn loadWorldAttributes(io: Io, out: *PlayerStore) LoadError!void {
+    const id = out.id.toInt();
+    var path_buf: [max_path_bytes]u8 = undefined;
+
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/worldattrs", .{id}) catch unreachable;
+    try store.loadAttrset(PlayerStore.World.Attrs, io, path, &out.world.attrs);
+}
+
+fn loadWorldMapTable(io: Io, out: *PlayerStore) LoadError!void {
+    const id = out.id.toInt();
+    var path_buf: [max_path_bytes]u8 = undefined;
+
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/worldmaptab", .{id}) catch unreachable;
+    try store.loadEnumMap(
+        PlayerStore.World.Maps.Key,
+        PlayerStore.World.Maps.Value,
+        io,
+        path,
+        &out.world.maps,
     );
 }
 

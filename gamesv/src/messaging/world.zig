@@ -2,6 +2,8 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
     const log = std.log.scoped(.CSProtoEnterWorldMap);
     log.debug("{any}", .{txn.request});
 
+    const player_store = txn.any.player_store;
+
     if ((txn.request.map_id orelse 0) != 0 and (txn.request.point_id orelse 0) != 0) {
         const map_id = txn.request.map_id.?;
         const map_kind: PlayerStore.World.Map.Kind = .byMapId(map_id);
@@ -15,22 +17,25 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
         };
 
         const map: PlayerStore.World.Map = .initByBorthPos(&borth_pos);
-        txn.any.player_store.world.maps.put(map_kind, map);
+        player_store.world.maps.put(map_kind, map);
 
-        {
-            const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
-            defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
+        const io = txn.any.io;
 
-            store.player.saveWorldMapTable(txn.any.io, txn.any.player_store) catch |err| {
-                log.err("failed to save world map table: {t}", .{err});
-                return;
-            };
+        var save_world_table = io.async(store.player.saveWorldMapTable, .{ io, player_store });
+        defer save_world_table.cancel(io) catch {};
 
-            store.player.saveWorldAttributes(txn.any.io, txn.any.player_store) catch |err| {
-                log.err("failed to save world attributes: {t}", .{err});
-                return;
-            };
-        }
+        var save_world_attrs = io.async(store.player.saveWorldAttributes, .{ io, player_store });
+        defer save_world_attrs.cancel(io) catch {};
+
+        save_world_table.await(io) catch |err| {
+            log.err("failed to save world map table: {t}", .{err});
+            return;
+        };
+
+        save_world_attrs.await(io) catch |err| {
+            log.err("failed to save world attributes: {t}", .{err});
+            return;
+        };
     }
 
     try txn.respond(.{});
@@ -113,15 +118,10 @@ pub fn worldPoint(txn: Transaction(.CSProtoWorldPoint)) !void {
 
     world_map.setPositionByBorthPoint(pos.borth_point);
 
-    {
-        const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
-        defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
-
-        store.player.saveWorldMapTable(txn.any.io, txn.any.player_store) catch |err| {
-            log.err("failed to save world map table: {t}", .{err});
-            return;
-        };
-    }
+    store.player.saveWorldMapTable(txn.any.io, txn.any.player_store) catch |err| {
+        log.err("failed to save world map table: {t}", .{err});
+        return;
+    };
 
     try txn.respond(.{});
     try sendWorldMapSync(txn.any, txn.request.client_trans_data);
@@ -167,15 +167,10 @@ pub fn stateUpdate(txn: Transaction(.CSProtoStateUpdate)) !void {
             map.position_y = pos.y orelse 0;
             map.position_z = pos.z orelse 0;
 
-            {
-                const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
-                defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
-
-                store.player.saveWorldMapTable(txn.any.io, player_store) catch |err| {
-                    log.err("failed to save world map table: {t}", .{err});
-                    return;
-                };
-            }
+            store.player.saveWorldMapTable(txn.any.io, player_store) catch |err| {
+                log.err("failed to save world map table: {t}", .{err});
+                return;
+            };
 
             break;
         }
@@ -194,20 +189,23 @@ pub fn enterHome(txn: Transaction(.CSProtoEnterHome)) !void {
             player_store.world.maps.put(.home, map);
             player_store.world.attrs.active_kind = .home;
 
-            {
-                const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
-                defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
+            const io = txn.any.io;
 
-                store.player.saveWorldMapTable(txn.any.io, txn.any.player_store) catch |err| {
-                    log.err("failed to save world map table: {t}", .{err});
-                    return;
-                };
+            var save_world_table = io.async(store.player.saveWorldMapTable, .{ io, player_store });
+            defer save_world_table.cancel(io) catch {};
 
-                store.player.saveWorldAttributes(txn.any.io, txn.any.player_store) catch |err| {
-                    log.err("failed to save world attributes: {t}", .{err});
-                    return;
-                };
-            }
+            var save_world_attrs = io.async(store.player.saveWorldAttributes, .{ io, player_store });
+            defer save_world_attrs.cancel(io) catch {};
+
+            save_world_table.await(io) catch |err| {
+                log.err("failed to save world map table: {t}", .{err});
+                return;
+            };
+
+            save_world_attrs.await(io) catch |err| {
+                log.err("failed to save world attributes: {t}", .{err});
+                return;
+            };
 
             try sendWorldMapSync(txn.any, null);
         }
@@ -220,15 +218,10 @@ pub fn worldQuitHome(txn: Transaction(.CSProtoWorldQuitHome)) !void {
     const log = std.log.scoped(.CSProtoWorldQuitHome);
     txn.any.player_store.world.attrs.active_kind = .exploration;
 
-    {
-        const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
-        defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
-
-        store.player.saveWorldAttributes(txn.any.io, txn.any.player_store) catch |err| {
-            log.err("failed to save world attributes: {t}", .{err});
-            return;
-        };
-    }
+    store.player.saveWorldAttributes(txn.any.io, txn.any.player_store) catch |err| {
+        log.err("failed to save world attributes: {t}", .{err});
+        return;
+    };
 
     try sendWorldMapSync(txn.any, null);
     try txn.respond(.{});

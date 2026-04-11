@@ -36,10 +36,15 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
 
             logic.gameplay.onFirstEntrance(txn.any.player_store);
 
-            store.player.saveAll(txn.any.io, txn.any.player_store) catch |save_err| {
-                log.warn("failed to save player store upon first entrance: {t}", .{save_err});
-                return;
-            };
+            {
+                const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
+                defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
+
+                store.player.saveAll(txn.any.io, txn.any.player_store) catch |save_err| {
+                    log.warn("failed to save player store upon first entrance: {t}", .{save_err});
+                    return;
+                };
+            }
         },
     }
 

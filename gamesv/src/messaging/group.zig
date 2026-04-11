@@ -53,15 +53,10 @@ pub fn changeHeroGroupIndex(txn: Transaction(.CSProtoChangeHeroGroupIndex)) !voi
     const formation_group = player_store.lineup.group_map.getPtr(.world).?;
     formation_group.formation_heros[formation_id - 1] = new_heros;
 
-    {
-        const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
-        defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
-
-        store.player.saveFormationTable(txn.any.io, player_store) catch |err| {
-            log.warn("failed to save formation table: {t}", .{err});
-            return;
-        };
-    }
+    store.player.saveFormationTable(txn.any.io, player_store) catch |err| {
+        log.warn("failed to save formation table: {t}", .{err});
+        return;
+    };
 
     var group_mgrs: std.ArrayList(pb.GroupManager) = .empty;
     var group_mgrs_buf: [PlayerStore.Lineup.GroupMap.len]pb.GroupManager = undefined;
@@ -109,15 +104,10 @@ pub fn switchWorldGroupControl(txn: Transaction(.CSProtoSwitchWorldGroupControl)
 
     world_group.formation_controls[formation_index] = @enumFromInt(uuid.config_id);
 
-    {
-        const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
-        defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
-
-        store.player.saveFormationTable(txn.any.io, txn.any.player_store) catch |err| {
-            log.warn("failed to save formation table: {t}", .{err});
-            return;
-        };
-    }
+    store.player.saveFormationTable(txn.any.io, txn.any.player_store) catch |err| {
+        log.warn("failed to save formation table: {t}", .{err});
+        return;
+    };
 
     try txn.respond(.{});
 }
