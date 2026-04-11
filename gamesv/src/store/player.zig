@@ -11,7 +11,8 @@ pub fn saveAll(io: Io, player_store: *const PlayerStore) SavePlayerStoreError!vo
     const basic_info_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/basicinfo", .{id}) catch unreachable;
     try store.saveAttrset(PlayerStore.BasicInfo, io, basic_info_path, &player_store.basic_info);
 
-    try saveWorldMapAttributes(io, player_store);
+    try saveWorldMapTable(io, player_store);
+    try saveWorldAttributes(io, player_store);
 
     const hero_tab_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/herotab", .{id}) catch unreachable;
     try store.saveEnumMap(
@@ -25,12 +26,26 @@ pub fn saveAll(io: Io, player_store: *const PlayerStore) SavePlayerStoreError!vo
     try saveFormationTable(io, player_store);
 }
 
-pub fn saveWorldMapAttributes(io: Io, player_store: *const PlayerStore) SavePlayerStoreError!void {
+pub fn saveWorldMapTable(io: Io, player_store: *const PlayerStore) SavePlayerStoreError!void {
     const id = player_store.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
-    const world_map_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/worldmapattrs", .{id}) catch unreachable;
-    try store.saveAttrset(PlayerStore.WorldMap, io, world_map_path, &player_store.world_map);
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/worldmaptab", .{id}) catch unreachable;
+    try store.saveEnumMap(
+        PlayerStore.World.Maps.Key,
+        PlayerStore.World.Maps.Value,
+        io,
+        path,
+        &player_store.world.maps,
+    );
+}
+
+pub fn saveWorldAttributes(io: Io, player_store: *const PlayerStore) SavePlayerStoreError!void {
+    const id = player_store.id.toInt();
+    var path_buf: [max_path_bytes]u8 = undefined;
+
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/worldattrs", .{id}) catch unreachable;
+    try store.saveAttrset(PlayerStore.World.Attrs, io, path, &player_store.world.attrs);
 }
 
 pub fn saveFormationTable(io: Io, player_store: *const PlayerStore) SavePlayerStoreError!void {
@@ -58,8 +73,17 @@ pub fn loadAll(io: Io, out: *PlayerStore) LoadPlayerStoreError!void {
     const basic_info_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/basicinfo", .{id}) catch unreachable;
     try store.loadAttrset(PlayerStore.BasicInfo, io, basic_info_path, &out.basic_info);
 
-    const world_map_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/worldmapattrs", .{id}) catch unreachable;
-    try store.loadAttrset(PlayerStore.WorldMap, io, world_map_path, &out.world_map);
+    const world_attrs_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/worldattrs", .{id}) catch unreachable;
+    try store.loadAttrset(PlayerStore.World.Attrs, io, world_attrs_path, &out.world.attrs);
+
+    const world_map_tab_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/worldmaptab", .{id}) catch unreachable;
+    try store.loadEnumMap(
+        PlayerStore.World.Maps.Key,
+        PlayerStore.World.Maps.Value,
+        io,
+        world_map_tab_path,
+        &out.world.maps,
+    );
 
     const hero_tab_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/herotab", .{id}) catch unreachable;
     try store.loadEnumMap(

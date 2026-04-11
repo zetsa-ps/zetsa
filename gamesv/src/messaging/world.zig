@@ -2,46 +2,34 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
     const log = std.log.scoped(.CSProtoEnterWorldMap);
     log.debug("{any}", .{txn.request});
 
-    var previous_world_map: ?logic.PlayerStore.WorldMap = null;
-    const world_map = &txn.any.player_store.world_map;
-
     if ((txn.request.map_id orelse 0) != 0 and (txn.request.point_id orelse 0) != 0) {
         const map_id = txn.request.map_id.?;
+        const map_kind: PlayerStore.World.Map.Kind = .byMapId(map_id);
 
-        if (map_id == tables.game.home_id) {
-            previous_world_map = world_map.*;
-        }
-
-        for (tables.world_borthpos.list) |world_borthpos| {
-            if (world_borthpos.city_id == map_id) {
-                if (world_borthpos.id == txn.request.point_id.?) {
-                    world_map.map_id = @bitCast(map_id);
-                    world_map.area_id = tables.world_area.calculateBelongArea(
-                        map_id,
-                        world_borthpos.borth_point[0..3].*,
-                        false,
-                    );
-
-                    world_map.setPositionByBorthPoint(world_borthpos.borth_point);
-
-                    if (map_id == tables.game.home_id) break;
-
-                    {
-                        const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
-                        defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
-
-                        store.player.saveWorldMapAttributes(txn.any.io, txn.any.player_store) catch |err| {
-                            log.err("failed to save world map attributes: {t}", .{err});
-                            return;
-                        };
-                    }
-
-                    break;
-                }
-            }
+        const borth_pos = lookup: for (tables.world_borthpos.list) |world_borthpos| {
+            if (world_borthpos.city_id == map_id and world_borthpos.id == txn.request.point_id.?)
+                break :lookup world_borthpos;
         } else {
             log.warn("invalid point requested: map_id={d}, point_id={d}", .{ map_id, txn.request.point_id.? });
             return;
+        };
+
+        const map: PlayerStore.World.Map = .initByBorthPos(&borth_pos);
+        txn.any.player_store.world.maps.put(map_kind, map);
+
+        {
+            const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
+            defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
+
+            store.player.saveWorldMapTable(txn.any.io, txn.any.player_store) catch |err| {
+                log.err("failed to save world map table: {t}", .{err});
+                return;
+            };
+
+            store.player.saveWorldAttributes(txn.any.io, txn.any.player_store) catch |err| {
+                log.err("failed to save world attributes: {t}", .{err});
+                return;
+            };
         }
     }
 
@@ -52,10 +40,6 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
     try sendObjBattleInfoSync(txn.any);
     try sendBattleHeroInfoSync(txn.any);
     try sendHeroAttrInfoSync(txn.any);
-
-    if (previous_world_map != null) {
-        world_map.* = previous_world_map.?;
-    }
 }
 
 pub fn dayWeatherSync(txn: Transaction(.CSProtoDayWeatherSync)) !void {
@@ -117,9 +101,10 @@ pub fn worldPoint(txn: Transaction(.CSProtoWorldPoint)) !void {
         return;
     };
 
-    const world_map = &txn.any.player_store.world_map;
+    const player_store = txn.any.player_store;
+    const world_map = player_store.world.maps.getPtr(player_store.world.attrs.active_kind).?;
 
-    world_map.map_id = pos.city_id;
+    world_map.id = pos.city_id;
     world_map.area_id = tables.world_area.calculateBelongArea(
         pos.city_id,
         pos.borth_point[0..3].*,
@@ -132,8 +117,8 @@ pub fn worldPoint(txn: Transaction(.CSProtoWorldPoint)) !void {
         const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
         defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
 
-        store.player.saveWorldMapAttributes(txn.any.io, txn.any.player_store) catch |err| {
-            log.err("failed to save world map attributes: {t}", .{err});
+        store.player.saveWorldMapTable(txn.any.io, txn.any.player_store) catch |err| {
+            log.err("failed to save world map table: {t}", .{err});
             return;
         };
     }
@@ -162,6 +147,8 @@ pub fn stateUpdate(txn: Transaction(.CSProtoStateUpdate)) !void {
         world_group.formation_controls[world_group.cur_formation].toHeroId().?,
     ).toInt();
 
+    const map = player_store.world.maps.getPtr(player_store.world.attrs.active_kind).?;
+
     if (txn.request.move_msg) |move_msg| for (move_msg.move.items) |move_item| {
         if (move_msg.map_id == tables.game.home_id) break;
 
@@ -171,21 +158,21 @@ pub fn stateUpdate(txn: Transaction(.CSProtoStateUpdate)) !void {
             const pos = move_info.pos orelse continue;
 
             if (move_info.angle) |angle|
-                player_store.world_map.angle = angle * 100;
+                map.angle = angle * 100;
 
             if (move_info.area_id) |area_id|
-                player_store.world_map.area_id = area_id;
+                map.area_id = area_id;
 
-            player_store.world_map.position_x = pos.x orelse 0;
-            player_store.world_map.position_y = pos.y orelse 0;
-            player_store.world_map.position_z = pos.z orelse 0;
+            map.position_x = pos.x orelse 0;
+            map.position_y = pos.y orelse 0;
+            map.position_z = pos.z orelse 0;
 
             {
                 const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
                 defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
 
-                store.player.saveWorldMapAttributes(txn.any.io, player_store) catch |err| {
-                    log.err("failed to save world map attributes: {t}", .{err});
+                store.player.saveWorldMapTable(txn.any.io, player_store) catch |err| {
+                    log.err("failed to save world map table: {t}", .{err});
                     return;
                 };
             }
@@ -196,17 +183,33 @@ pub fn stateUpdate(txn: Transaction(.CSProtoStateUpdate)) !void {
 }
 
 pub fn enterHome(txn: Transaction(.CSProtoEnterHome)) !void {
-    if (txn.request.creator_id) |creator_id| {
-        if (creator_id == txn.any.player_store.id.toInt()) {
-            const world_map = &txn.any.player_store.world_map;
-            const previous_world_map = world_map.*;
+    const log = std.log.scoped(.CSProtoEnterHome);
+    const player_store = txn.any.player_store;
 
-            world_map.map_id = tables.game.home_id;
-            world_map.setPositionByBorthPoint(tables.world_borthpos.queryCityBirthPos(world_map.map_id).?.borth_point);
+    if (txn.request.creator_id) |creator_id| {
+        if (creator_id == player_store.id.toInt()) {
+            const borth_pos = tables.world_borthpos.queryCityBirthPos(tables.game.home_id).?;
+            const map: PlayerStore.World.Map = .initByBorthPos(&borth_pos);
+
+            player_store.world.maps.put(.home, map);
+            player_store.world.attrs.active_kind = .home;
+
+            {
+                const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
+                defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
+
+                store.player.saveWorldMapTable(txn.any.io, txn.any.player_store) catch |err| {
+                    log.err("failed to save world map table: {t}", .{err});
+                    return;
+                };
+
+                store.player.saveWorldAttributes(txn.any.io, txn.any.player_store) catch |err| {
+                    log.err("failed to save world attributes: {t}", .{err});
+                    return;
+                };
+            }
 
             try sendWorldMapSync(txn.any, null);
-
-            world_map.* = previous_world_map;
         }
     }
 
@@ -214,8 +217,20 @@ pub fn enterHome(txn: Transaction(.CSProtoEnterHome)) !void {
 }
 
 pub fn worldQuitHome(txn: Transaction(.CSProtoWorldQuitHome)) !void {
-    try sendWorldMapSync(txn.any, null);
+    const log = std.log.scoped(.CSProtoWorldQuitHome);
+    txn.any.player_store.world.attrs.active_kind = .exploration;
 
+    {
+        const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
+        defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
+
+        store.player.saveWorldAttributes(txn.any.io, txn.any.player_store) catch |err| {
+            log.err("failed to save world attributes: {t}", .{err});
+            return;
+        };
+    }
+
+    try sendWorldMapSync(txn.any, null);
     try txn.respond(.{});
 }
 
@@ -223,26 +238,30 @@ fn sendWorldMapSync(txn: *AnyTransaction, ctd: ?u32) !void {
     const player_store = txn.player_store;
     var map_points: std.ArrayList(u32) = .empty;
 
+    const world_map = player_store.world.maps.getPtr(player_store.world.attrs.active_kind).?;
+
     for (tables.world_borthpos.list) |world_borthpos| {
-        if (world_borthpos.city_id == player_store.world_map.map_id) {
+        if (world_borthpos.city_id == world_map.id) {
             try map_points.append(txn.arena, world_borthpos.id);
         }
     }
 
-    var world_map: pb.WorldMap = .{
+    var players_buf: [1]pb.WorldMapPlayer = undefined;
+
+    var world_map_pb: pb.WorldMap = .{
         .creator_id = player_store.id.toInt(),
-        .map_id = player_store.world_map.map_id,
-        .players = .empty,
+        .map_id = world_map.id,
+        .players = .initBuffer(&players_buf),
     };
 
     const move_info: pb.MoveInfo = .{
         .pos = .{
-            .x = player_store.world_map.position_x,
-            .y = player_store.world_map.position_y,
-            .z = player_store.world_map.position_z,
+            .x = world_map.position_x,
+            .y = world_map.position_y,
+            .z = world_map.position_z,
         },
-        .angle = player_store.world_map.angle,
-        .area_id = player_store.world_map.area_id,
+        .angle = world_map.angle,
+        .area_id = world_map.area_id,
         .move_status = @intFromEnum(pb.MoveStatus.MS_TRANSFER),
         .timestamp = @intCast(txn.time.toSeconds()),
     };
@@ -272,13 +291,15 @@ fn sendWorldMapSync(txn: *AnyTransaction, ctd: ?u32) !void {
 
     const basic_info = &txn.player_store.basic_info;
 
+    var player_move_buf: [1]pb.MoveInfo = undefined;
+
     var player: pb.WorldMapPlayer = .{
         .player_id = player_store.id.toInt(),
         .status = @intFromEnum(pb.WorldMapPlayerStatusType.WMPST_NORMAL),
         .reason = 0,
         .name = basic_info.name.view(),
         .host = true,
-        .move = .empty,
+        .move = .initBuffer(&player_move_buf),
         .group = group,
         .face = .{
             .sex = basic_info.sex.toPlayerSexType(),
@@ -288,22 +309,22 @@ fn sendWorldMapSync(txn: *AnyTransaction, ctd: ?u32) !void {
         .apparel_info = .{ .apparel_ids = .empty },
     };
 
-    try player.move.append(txn.arena, move_info);
+    player.move.appendAssumeCapacity(move_info);
 
-    try world_map.players.append(txn.arena, player);
+    world_map_pb.players.appendAssumeCapacity(player);
 
     try txn.send(.CSProtoWorldMapPointSync, .{ .u32s = map_points });
 
     try txn.send(.CSProtoWorldMapSync, .{
         .cmd = @intFromEnum(pb.WorldMapCmdType.WMCT_ENTER),
         .creator_id = player_store.id.toInt(),
-        .map_id = player_store.world_map.map_id,
+        .map_id = world_map.id,
         .player_id = player_store.id.toInt(),
         .notify_id = player_store.id.toInt(), // ??
         .zone_id = 0, // battle zone ?
         .client_trans_data = ctd,
         .chats = .empty,
-        .map_info = world_map,
+        .map_info = world_map_pb,
     });
 }
 

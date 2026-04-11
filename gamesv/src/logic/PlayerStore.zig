@@ -2,7 +2,7 @@ id: ID,
 basic_info: BasicInfo,
 hero: Hero,
 lineup: Lineup,
-world_map: WorldMap,
+world: World,
 
 pub const ID = enum(u32) {
     none = 0,
@@ -19,7 +19,7 @@ pub const init: PlayerStore = .{
     .basic_info = .init,
     .hero = .init,
     .lineup = .init,
-    .world_map = .init,
+    .world = .init,
 };
 
 pub fn deinit(data: *PlayerStore, gpa: Allocator) void {
@@ -27,7 +27,7 @@ pub fn deinit(data: *PlayerStore, gpa: Allocator) void {
     _ = .{ data, gpa };
 }
 
-pub const WorldMap = @import("PlayerStore/WorldMap.zig");
+pub const World = @import("PlayerStore/World.zig");
 pub const BasicInfo = @import("PlayerStore/BasicInfo.zig");
 pub const Hero = @import("PlayerStore/Hero.zig");
 pub const Lineup = @import("PlayerStore/Lineup.zig");
