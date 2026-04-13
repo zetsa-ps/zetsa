@@ -39,13 +39,15 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
     }
 
     const world_map = player_store.world.maps.getPtr(player_store.world.attrs.active_kind).?;
+    const map_config = txn.any.assets.world_maps.map.getPtr(world_map.id) orelse {
+        log.err("world map with id {d} doesn't exist", .{world_map.id});
+        return;
+    };
 
-    var map_load = io.async(
-        Assets.WorldMaps.load,
-        .{ &txn.any.assets.world_maps, io, txn.any.gpa, world_map.id },
-    );
+    const battle = &txn.any.services.battle;
 
-    defer _ = map_load.await(io) catch {};
+    battle.map_config = map_config;
+    try battle.reset(txn.any.gpa, player_store);
 
     try txn.respond(.{});
 
@@ -53,19 +55,6 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
 
     try sendBattleHeroInfoSync(txn.any);
     try sendHeroAttrInfoSync(txn.any);
-
-    const map_config = map_load.await(io) catch |err| switch (err) {
-        error.Canceled, error.OutOfMemory => |e| return e,
-        else => |e| {
-            log.err("failed to load map {d}: {t}", .{ world_map.id, e });
-            return;
-        },
-    };
-
-    const battle = &txn.any.services.battle;
-
-    battle.map_config = map_config;
-    try battle.reset(txn.any.gpa, player_store);
 
     try txn.any.send(
         .CSProtoObjBattleInfoSync,
@@ -258,12 +247,11 @@ pub fn enterHome(txn: Transaction(.CSProtoEnterHome)) !void {
 
             const io = txn.any.io;
 
-            var map_load = io.async(
-                Assets.WorldMaps.load,
-                .{ &txn.any.assets.world_maps, io, txn.any.gpa, map.id },
-            );
+            const map_config = txn.any.assets.world_maps.map.getPtr(map.id).?;
 
-            defer _ = map_load.await(io) catch {};
+            const battle = &txn.any.services.battle;
+            battle.map_config = map_config;
+            try battle.reset(txn.any.gpa, player_store);
 
             var save_world_table = io.async(store.player.saveWorldMapTable, .{ io, player_store });
             defer save_world_table.cancel(io) catch {};
@@ -281,18 +269,6 @@ pub fn enterHome(txn: Transaction(.CSProtoEnterHome)) !void {
                 return;
             };
 
-            const map_config = map_load.await(io) catch |err| switch (err) {
-                error.Canceled, error.OutOfMemory => |e| return e,
-                else => |e| {
-                    log.err("failed to load map {d}: {t}", .{ map.id, e });
-                    return;
-                },
-            };
-
-            const battle = &txn.any.services.battle;
-            battle.map_config = map_config;
-            try battle.reset(txn.any.gpa, player_store);
-
             try sendWorldMapSync(txn.any, null);
         }
     }
@@ -307,8 +283,14 @@ pub fn worldQuitHome(txn: Transaction(.CSProtoWorldQuitHome)) !void {
 
     const io = txn.any.io;
 
-    var map_load = io.async(Assets.WorldMaps.load, .{ &txn.any.assets.world_maps, io, txn.any.gpa, map.id });
-    defer _ = map_load.await(io) catch {};
+    const map_config = txn.any.assets.world_maps.map.getPtr(map.id) orelse {
+        log.err("world map with id {d} doesn't exist", .{map.id});
+        return;
+    };
+
+    const battle = &txn.any.services.battle;
+    battle.map_config = map_config;
+    try battle.reset(txn.any.gpa, txn.any.player_store);
 
     store.player.saveWorldAttributes(io, txn.any.player_store) catch |err| {
         log.err("failed to save world attributes: {t}", .{err});
@@ -317,18 +299,6 @@ pub fn worldQuitHome(txn: Transaction(.CSProtoWorldQuitHome)) !void {
 
     try sendWorldMapSync(txn.any, null);
     try txn.respond(.{});
-
-    const map_config = map_load.await(io) catch |err| switch (err) {
-        error.Canceled, error.OutOfMemory => |e| return e,
-        else => |e| {
-            log.err("failed to load map {d}: {t}", .{ map.id, e });
-            return;
-        },
-    };
-
-    const battle = &txn.any.services.battle;
-    battle.map_config = map_config;
-    try battle.reset(txn.any.gpa, txn.any.player_store);
 }
 
 fn sendWorldMapSync(txn: *AnyTransaction, ctd: ?u32) !void {

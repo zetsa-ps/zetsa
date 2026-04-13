@@ -1,9 +1,10 @@
-const log = std.log.scoped(.@"gamesv::Assets");
-
 world_maps: WorldMaps,
 
-pub fn init(gpa: Allocator) Assets {
-    return .{ .world_maps = .init(gpa) };
+pub fn load(io: Io, gpa: Allocator) !Assets {
+    const world_maps: WorldMaps = try .loadAll(io, gpa);
+    errdefer world_maps.deinit();
+
+    return .{ .world_maps = world_maps };
 }
 
 pub fn deinit(assets: *Assets) void {
@@ -11,12 +12,9 @@ pub fn deinit(assets: *Assets) void {
 }
 
 pub const WorldMaps = struct {
-    loaded_maps: HashMap(u32, *const Entry),
-    // Protects the `loaded_maps`.
-    access_lock: Io.RwLock,
-    // Makes sure that only one map is being loaded at a time,
-    // so we won't load same map multiple times and leak memory.
-    load_lock: Io.Mutex,
+    const Map = HashMap(u32, Entry);
+
+    map: Map,
     arena: ArenaAllocator,
 
     const Loaded = struct {
@@ -24,96 +22,122 @@ pub const WorldMaps = struct {
         entry: Entry,
     };
 
-    pub fn init(gpa: Allocator) WorldMaps {
-        return .{
-            .loaded_maps = .empty,
-            .access_lock = .init,
-            .load_lock = .init,
-            .arena = .init(gpa),
+    pub fn loadAll(io: Io, gpa: Allocator) LoadOneError!WorldMaps {
+        var arena_impl: ArenaAllocator = .init(gpa);
+        errdefer arena_impl.deinit();
+        const arena = arena_impl.allocator();
+
+        var map: Map = .empty;
+        try map.ensureTotalCapacity(arena, tables.world_city.list.len);
+
+        const Result = union(enum) {
+            one: LoadOneError!Loaded,
         };
+
+        var select_buf: [tables.world_city.list.len]Result = undefined;
+        var select: Io.Select(Result) = .init(io, &select_buf);
+        defer select.cancelDiscard();
+
+        for (tables.world_city.list) |item| select.async(
+            .one,
+            loadOne,
+            .{ io, arena, item.id },
+        );
+
+        var outstanding = tables.world_city.list.len;
+
+        while (outstanding != 0) : (outstanding -= 1) {
+            const result = try select.await();
+            const loaded = result.one catch |err| switch (err) {
+                error.FileNotFound => continue,
+                else => |e| return e,
+            };
+
+            map.putAssumeCapacity(loaded.id, loaded.entry);
+        }
+
+        return .{ .map = map, .arena = arena_impl };
     }
 
-    // Not threadsafe.
     pub fn deinit(wm: *WorldMaps) void {
         wm.arena.deinit();
     }
 
-    // Threadsafe.
-    pub fn load(wm: *WorldMaps, io: Io, gpa: Allocator, id: u32) LoadOneError!*const Entry {
-        var prev_count: usize = undefined;
-
-        {
-            try wm.access_lock.lockShared(io);
-            defer wm.access_lock.unlockShared(io);
-
-            if (wm.loaded_maps.get(id)) |ptr|
-                return ptr;
-
-            prev_count = wm.loaded_maps.entries.len;
-        }
-
-        try wm.load_lock.lock(io);
-        defer wm.load_lock.unlock(io);
-
-        if (prev_count != wm.loaded_maps.entries.len) {
-            // Lookup again, maybe the map was just loaded.
-            if (wm.loaded_maps.get(id)) |ptr|
-                return ptr;
-        }
-
+    fn loadOne(io: Io, arena: Allocator, id: u32) LoadOneError!Loaded {
         var path_buf: [std.fs.max_path_bytes]u8 = undefined;
-        const path = std.fmt.bufPrint(&path_buf, "assets/maps/worldmap_{d}.zon", .{id}) catch unreachable;
+        const path = std.fmt.bufPrint(&path_buf, "assets/maps/worldmap_{d}.bin", .{id}) catch unreachable;
 
-        var start_time: Io.Timestamp = if (is_debug) .now(io, .awake) else .zero;
-
-        const content = Io.Dir.readFileAllocOptions(.cwd(), io, path, gpa, .unlimited, .of(u8), 0) catch |err| return switch (err) {
+        const content = Io.Dir.readFileAllocOptions(.cwd(), io, path, arena, .unlimited, .of(Entry.Point), null) catch |err| return switch (err) {
             error.Canceled, error.FileNotFound, error.OutOfMemory => |e| e,
             else => error.InputOutput,
         };
 
-        defer gpa.free(content);
-
-        const points = std.zon.parse.fromSliceAlloc([]const Entry.Point, wm.arena.allocator(), content, null, .{
-            .ignore_unknown_fields = true,
-            .free_on_error = false,
-        }) catch return error.ParseFailed;
+        const length = std.mem.readInt(u32, content[0..4], .little);
+        const points = @as([*]Entry.Point, @ptrCast(content[4..].ptr))[0..length];
 
         var index: Entry.Index = .empty;
-        try index.ensureTotalCapacity(wm.arena.allocator(), points.len);
+        try index.ensureTotalCapacity(arena, points.len);
+
         for (points) |*pt| index.putAssumeCapacity(pt.id, pt);
 
-        const entry = try wm.arena.allocator().create(Entry);
-        entry.* = .{ .points = points, .index = index };
-
-        try wm.access_lock.lock(io);
-        defer wm.access_lock.unlock(io);
-
-        try wm.loaded_maps.put(wm.arena.allocator(), id, entry);
-
-        if (is_debug)
-            log.debug("loading map asset '{s}' took {f}", .{ path, start_time.untilNow(io, .awake) });
-
-        return entry;
+        return .{
+            .id = id,
+            .entry = .{ .bytes = content, .points = points, .index = index },
+        };
     }
 
     pub const LoadOneError = error{
         InputOutput,
         FileNotFound,
-        ParseFailed,
     } || Io.Cancelable || Allocator.Error;
 
     pub const Entry = struct {
+        const Raw = []align(@alignOf(Point)) const u8;
+
         pub const Index = HashMap(u32, *const Point);
 
+        bytes: Raw,
         points: []const Point,
         index: Index,
 
-        pub const Point = struct {
+        pub fn getPoint(entry: *const Entry, id: u32) ?Point.View {
+            const point = entry.index.get(id) orelse return null;
+            return .{ .bytes = entry.bytes, .config = point };
+        }
+
+        pub const Point = extern struct {
+            pub const View = struct {
+                bytes: Raw,
+                config: *const Point,
+
+                pub fn worldAreaIds(view: *const View) []const u32 {
+                    const offset = view.config.world_area_ids_offset;
+                    if (offset == std.math.maxInt(u32)) return &.{};
+
+                    const ptr = @as([*]const u32, @ptrCast(@alignCast(view.bytes.ptr[offset..])));
+                    return ptr[1..][0..ptr[0]];
+                }
+            };
+
             id: u32,
             city_id: u32,
+            position: [3]f32,
+            rotation: [3]f32,
+            scale: f32,
             spawner_id: u32,
             expand_id: u32,
-            world_area_ids: []const u32,
+            ai_tree: u32,
+            blueprint: u32,
+            fsm: u32,
+            status_reward_offset: u32,
+            common_tag_offset: u32,
+            all_block_show: u32,
+            keep_on_complete: u32,
+            filter_mark: u32,
+            random_evt_id: u32,
+            init_status: u32,
+            initial_complete_state: u32,
+            world_area_ids_offset: u32,
         };
     };
 };
@@ -122,8 +146,6 @@ const Io = std.Io;
 const Allocator = std.mem.Allocator;
 const HashMap = std.AutoArrayHashMapUnmanaged;
 const ArenaAllocator = std.heap.ArenaAllocator;
-
-const is_debug = @import("builtin").mode == .Debug;
 
 const tables = @import("tables.zig");
 const std = @import("std");

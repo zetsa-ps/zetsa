@@ -62,10 +62,11 @@ pub fn getObjectIndexByUuid(battle: *Battle, uuid: Uuid) ?usize {
 
 pub fn instantiateEnemyGroup(battle: *Battle, gpa: Allocator, id: u32) Allocator.Error!void {
     const config = battle.map_config orelse return;
-    const point = config.index.get(id) orelse return;
-    const enemy_group = tables.world_enemy_group.getById(point.expand_id) orelse return;
+    const point = config.getPoint(id) orelse return;
+    const enemy_group = tables.world_enemy_group.getById(point.config.expand_id) orelse return;
 
-    const area_id = if (point.world_area_ids.len != 0) point.world_area_ids[0] else 0;
+    const world_area_ids = point.worldAreaIds();
+    const area_id = if (world_area_ids.len != 0) world_area_ids[0] else 0;
 
     log.debug("instantiating group {d} of {d} monsters", .{ id, enemy_group.enemy_list.len });
     try battle.objects.ensureUnusedCapacity(gpa, enemy_group.enemy_list.len);
@@ -104,8 +105,8 @@ fn getEnemyLevel(enemy_pack: *const tables.enemy_pack.Entry, map_id: u32, area_i
 // TODO: index-based free_list
 pub fn resetEnemyGroup(battle: *Battle, id: u32) void {
     const config = battle.map_config orelse return;
-    const point = config.index.get(id) orelse return;
-    const enemy_group = tables.world_enemy_group.getById(point.expand_id) orelse return;
+    const point = config.getPoint(id) orelse return;
+    const enemy_group = tables.world_enemy_group.getById(point.config.expand_id) orelse return;
 
     var i: u24 = 0;
     while (i < enemy_group.enemy_list.len) : (i += 1) {

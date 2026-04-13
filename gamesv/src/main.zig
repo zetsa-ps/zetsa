@@ -50,7 +50,9 @@ pub fn main(init: process.Init.Minimal) u8 {
     defer threaded.deinit();
     const io = threaded.io();
 
-    var assets: Assets = .init(gpa);
+    var assets = Assets.load(io, gpa) catch |err|
+        fatal("failed to load assets: {t}", .{err});
+
     defer assets.deinit();
 
     common.printStartupSplash();
