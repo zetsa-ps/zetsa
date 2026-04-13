@@ -2,6 +2,7 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
     const log = std.log.scoped(.CSProtoEnterWorldMap);
     log.debug("{any}", .{txn.request});
 
+    const io = txn.any.io;
     const player_store = txn.any.player_store;
 
     if ((txn.request.map_id orelse 0) != 0 and (txn.request.point_id orelse 0) != 0) {
@@ -20,8 +21,6 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
         player_store.world.maps.put(map_kind, map);
         player_store.world.attrs.active_kind = map_kind;
 
-        const io = txn.any.io;
-
         var save_world_table = io.async(store.player.saveWorldMapTable, .{ io, player_store });
         defer save_world_table.cancel(io) catch {};
 
@@ -39,13 +38,39 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
         };
     }
 
+    const world_map = player_store.world.maps.getPtr(player_store.world.attrs.active_kind).?;
+
+    var map_load = io.async(
+        Assets.WorldMaps.load,
+        .{ &txn.any.assets.world_maps, io, txn.any.gpa, world_map.id },
+    );
+
+    defer _ = map_load.await(io) catch {};
+
     try txn.respond(.{});
 
     try sendWorldMapSync(txn.any, txn.request.client_trans_data);
 
-    try sendObjBattleInfoSync(txn.any);
     try sendBattleHeroInfoSync(txn.any);
     try sendHeroAttrInfoSync(txn.any);
+
+    const map_config = map_load.await(io) catch |err| switch (err) {
+        error.Canceled, error.OutOfMemory => |e| return e,
+        else => |e| {
+            log.err("failed to load map {d}: {t}", .{ world_map.id, e });
+            return;
+        },
+    };
+
+    const battle = &txn.any.services.battle;
+
+    battle.map_config = map_config;
+    try battle.reset(txn.any.gpa, player_store);
+
+    try txn.any.send(
+        .CSProtoObjBattleInfoSync,
+        try encoding.packObjBattleInfoSync(txn.any.arena, battle, 1),
+    );
 }
 
 pub fn dayWeatherSync(txn: Transaction(.CSProtoDayWeatherSync)) !void {
@@ -130,11 +155,34 @@ pub fn worldPoint(txn: Transaction(.CSProtoWorldPoint)) !void {
 
 pub fn objHatredIncSync(txn: Transaction(.CSProtoObjHatredIncSync)) !void {
     const log = std.log.scoped(.CSProtoObjHatredIncSync);
-    log.debug("{any}", .{txn.request});
+
+    if (txn.request.info) |info| if (info.id) |hatred_id| {
+        const uuid: logic.Uuid = @bitCast(hatred_id);
+        const object_type = uuid.object_type.toFightObjType() orelse return;
+
+        if (object_type != .FO_Monster) {
+            log.warn("unimplemented object type: {t}", .{object_type});
+            return;
+        }
+
+        const battle = &txn.any.services.battle;
+        try battle.instantiateEnemyGroup(txn.any.gpa, uuid.player_id);
+    };
 
     try txn.respond(.{
         .inc = txn.request.inc,
         .info = txn.request.info,
+    });
+}
+
+pub fn hatredResetToHomeSync(txn: Transaction(.CSProtoHatredResetToHomeSync)) !void {
+    if (txn.request.obj_id) |id| {
+        const uuid: logic.Uuid = @bitCast(id);
+        txn.any.services.battle.resetEnemyGroup(uuid.player_id);
+    }
+
+    try txn.respond(.{
+        .obj_id = txn.request.obj_id,
     });
 }
 
@@ -178,6 +226,24 @@ pub fn stateUpdate(txn: Transaction(.CSProtoStateUpdate)) !void {
     };
 }
 
+pub fn battleInfoReduce(txn: Transaction(.CSProtoBattleInfoReduce)) !void {
+    const battle = &txn.any.services.battle;
+    const frame: logic.Services.Battle.Frame = .fromReduce(txn.request);
+
+    for (txn.request.battle_info.items) |battle_info| if (battle_info.hurt_info) |hurt_info| {
+        const hp_change = hurt_info.hp_change orelse continue;
+        const target_uuid = frame.getParticipatorAt(hurt_info.tar_id orelse continue) orelse continue;
+        const index = battle.getObjectIndexByUuid(target_uuid) orelse continue;
+
+        battle.objects.items(.hp)[index].change(hp_change);
+    };
+
+    try txn.any.send(
+        .CSProtoObjBattleInfoSync,
+        try encoding.packObjBattleInfoSync(txn.any.arena, battle, 0),
+    );
+}
+
 pub fn enterHome(txn: Transaction(.CSProtoEnterHome)) !void {
     const log = std.log.scoped(.CSProtoEnterHome);
     const player_store = txn.any.player_store;
@@ -191,6 +257,13 @@ pub fn enterHome(txn: Transaction(.CSProtoEnterHome)) !void {
             player_store.world.attrs.active_kind = .home;
 
             const io = txn.any.io;
+
+            var map_load = io.async(
+                Assets.WorldMaps.load,
+                .{ &txn.any.assets.world_maps, io, txn.any.gpa, map.id },
+            );
+
+            defer _ = map_load.await(io) catch {};
 
             var save_world_table = io.async(store.player.saveWorldMapTable, .{ io, player_store });
             defer save_world_table.cancel(io) catch {};
@@ -208,6 +281,18 @@ pub fn enterHome(txn: Transaction(.CSProtoEnterHome)) !void {
                 return;
             };
 
+            const map_config = map_load.await(io) catch |err| switch (err) {
+                error.Canceled, error.OutOfMemory => |e| return e,
+                else => |e| {
+                    log.err("failed to load map {d}: {t}", .{ map.id, e });
+                    return;
+                },
+            };
+
+            const battle = &txn.any.services.battle;
+            battle.map_config = map_config;
+            try battle.reset(txn.any.gpa, player_store);
+
             try sendWorldMapSync(txn.any, null);
         }
     }
@@ -218,14 +303,32 @@ pub fn enterHome(txn: Transaction(.CSProtoEnterHome)) !void {
 pub fn worldQuitHome(txn: Transaction(.CSProtoWorldQuitHome)) !void {
     const log = std.log.scoped(.CSProtoWorldQuitHome);
     txn.any.player_store.world.attrs.active_kind = .exploration;
+    const map = txn.any.player_store.world.maps.getPtr(.exploration).?;
 
-    store.player.saveWorldAttributes(txn.any.io, txn.any.player_store) catch |err| {
+    const io = txn.any.io;
+
+    var map_load = io.async(Assets.WorldMaps.load, .{ &txn.any.assets.world_maps, io, txn.any.gpa, map.id });
+    defer _ = map_load.await(io) catch {};
+
+    store.player.saveWorldAttributes(io, txn.any.player_store) catch |err| {
         log.err("failed to save world attributes: {t}", .{err});
         return;
     };
 
     try sendWorldMapSync(txn.any, null);
     try txn.respond(.{});
+
+    const map_config = map_load.await(io) catch |err| switch (err) {
+        error.Canceled, error.OutOfMemory => |e| return e,
+        else => |e| {
+            log.err("failed to load map {d}: {t}", .{ map.id, e });
+            return;
+        },
+    };
+
+    const battle = &txn.any.services.battle;
+    battle.map_config = map_config;
+    try battle.reset(txn.any.gpa, txn.any.player_store);
 }
 
 fn sendWorldMapSync(txn: *AnyTransaction, ctd: ?u32) !void {
@@ -322,37 +425,6 @@ fn sendWorldMapSync(txn: *AnyTransaction, ctd: ?u32) !void {
     });
 }
 
-fn sendObjBattleInfoSync(txn: *AnyTransaction) !void {
-    const player_store = txn.player_store;
-
-    var infos_buf: [PlayerStore.Hero.ItemMap.len - 1]pb.ObjBattleInfo = undefined;
-    var infos: std.ArrayList(pb.ObjBattleInfo) = .initBuffer(&infos_buf);
-
-    var hero_items = player_store.hero.item_map.iterator();
-
-    while (hero_items.next()) |entry| {
-        const id = entry.key;
-        const hero = entry.value;
-
-        if (@intFromEnum(id) == @as(u32, switch (txn.player_store.basic_info.sex) {
-            .female => tables.game.avatar_hero_id_male,
-            .male => tables.game.avatar_hero_id_female,
-        })) continue;
-
-        const uuid: logic.Uuid = .hero(player_store.id, id);
-
-        infos.appendAssumeCapacity(.{
-            .uuid = uuid.toInt(),
-            .hp = hero.hp.toInt(),
-            .sp = hero.sp.toInt(),
-            .alive_state = hero.hp.aliveState().toAliveStateType(),
-            .reason = 1,
-        });
-    }
-
-    try txn.send(.CSProtoObjBattleInfoSync, .{ .infos = infos });
-}
-
 fn sendBattleHeroInfoSync(txn: *AnyTransaction) !void {
     const player_store = txn.player_store;
 
@@ -380,26 +452,27 @@ fn sendBattleHeroInfoSync(txn: *AnyTransaction) !void {
         })) continue;
 
         const conf = tables.hero.getById(@intFromEnum(hero_id)).?;
-
         const uuid: logic.Uuid = .hero(player_store.id, hero_id);
 
         var skill_infos: pb.HeroSkillInfos = .{ .skills = try .initCapacity(txn.arena, conf.skill_list.len) };
 
-        for (conf.skill_list) |skill| {
-            skill_infos.skills.appendAssumeCapacity(.{
-                .skill_id = skill.value,
-                .skill_level = 1,
-            });
-        }
+        for (conf.skill_list) |skill| skill_infos.skills.appendAssumeCapacity(.{
+            .skill_id = skill.value,
+            .skill_level = 1,
+        });
+
+        var map: big_world.Attributes = .init(.{});
+        big_world.getHeroAttributes(hero_id, 1, 1, &map);
+
+        var attrs: std.ArrayList(pb.FightAttrOne) = try .initCapacity(txn.arena, big_world.Attributes.len);
+        encoding.packFightAttrs(&map, &attrs);
 
         heros.appendAssumeCapacity(.{
             .hero_guid = @truncate(uuid.toInt()),
             .hero_conf_id = conf.id,
             .winfo = .{ .attrs = .{} },
             .strategy = 0,
-            .attrs = .{
-                .attrs = try buildHeroBaseAttrs(txn.arena, conf.id, 1, 1),
-            },
+            .attrs = .{ .attrs = attrs },
             .skills = skill_infos,
             .hp = hero.hp.toInt(),
             .sp = hero.sp.toInt(),
@@ -477,11 +550,15 @@ fn sendHeroAttrInfoSync(txn: *AnyTransaction) !void {
             .type = 0,
         });
 
+        var map: big_world.Attributes = .init(.{});
+        big_world.getHeroAttributes(hero_id, 1, 1, &map);
+
+        var attrs: std.ArrayList(pb.FightAttrOne) = try .initCapacity(txn.arena, big_world.Attributes.len);
+        encoding.packFightAttrs(&map, &attrs);
+
         sub_modules.appendAssumeCapacity(.{
             .sub_module_id = 0,
-            .attrs = .{
-                .attrs = try buildHeroBaseAttrs(txn.arena, conf.id, 1, 1),
-            },
+            .attrs = .{ .attrs = attrs },
             .skills = skills,
         });
 
@@ -501,48 +578,16 @@ fn sendHeroAttrInfoSync(txn: *AnyTransaction) !void {
     try txn.send(.CSProtoHeroAttrInfoSync, .{ .heros = heros });
 }
 
-fn buildHeroBaseAttrs(arena: std.mem.Allocator, hero_id: u32, hero_level: u32, hero_rank: u32) !std.ArrayList(pb.FightAttrOne) {
-    const EBattlePropertyType = logic.big_world.EBattlePropertyType;
-
-    const hero = tables.hero.getById(hero_id).?;
-    const hero_att_id = tables.unit_property.getById(hero.property_id).?.base_attribute_id;
-    const hero_base_att_id = tables.template_hero.getBaseAttributeByRankAndLevel(hero_rank, hero_level);
-    const base_template = tables.template_value.getById(hero_base_att_id);
-
-    const base_values = base_template.?.base_attribute;
-    const factor_template = tables.template_value.getById(hero_att_id);
-
-    const factor_values = factor_template.?.base_attribute;
-    var factor_map: std.EnumMap(EBattlePropertyType, f32) = .init(.{});
-
-    for (factor_values) |entry| {
-        factor_map.put(std.enums.fromInt(EBattlePropertyType, entry.key) orelse continue, entry.value);
-    }
-
-    var attributes: std.ArrayList(pb.FightAttrOne) = try .initCapacity(arena, base_values.len);
-
-    for (base_values) |entry| {
-        attributes.appendAssumeCapacity(.{
-            .attr_id = @intCast(entry.key),
-            .attr_val = if (factor_map.get(
-                std.enums.fromInt(EBattlePropertyType, entry.key) orelse continue,
-            )) |factor|
-                @intFromFloat(entry.value * factor)
-            else
-                0,
-        });
-    }
-
-    return attributes;
-}
-
 const PlayerStore = logic.PlayerStore;
+const big_world = logic.big_world;
 
 const AnyTransaction = messaging.AnyTransaction;
 const Transaction = messaging.Transaction;
 const pb = proto.pb;
 
 const messaging = @import("../messaging.zig");
+const encoding = @import("../encoding.zig");
+const Assets = @import("../Assets.zig");
 const tables = @import("../tables.zig");
 const logic = @import("../logic.zig");
 const store = @import("../store.zig");

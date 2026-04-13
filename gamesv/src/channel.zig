@@ -2,7 +2,7 @@ const log = std.log.scoped(.@"gamesv::channel");
 
 const config: @import("Config.zig") = @import("config");
 
-pub fn run(io: Io, stream: net.Stream, gpa: Allocator) Io.Cancelable!void {
+pub fn run(io: Io, assets: *Assets, stream: net.Stream, gpa: Allocator) Io.Cancelable!void {
     defer stream.close(io);
 
     log.info("new connection from {f}", .{stream.socket.address});
@@ -10,6 +10,9 @@ pub fn run(io: Io, stream: net.Stream, gpa: Allocator) Io.Cancelable!void {
 
     var player_store: logic.PlayerStore = .init;
     defer player_store.deinit(gpa);
+
+    var services: logic.Services = .init;
+    defer services.deinit(gpa);
 
     var read_buffer: [config.recv_buffer_size]u8 = undefined;
     var reader = stream.reader(io, &read_buffer);
@@ -33,7 +36,15 @@ pub fn run(io: Io, stream: net.Stream, gpa: Allocator) Io.Cancelable!void {
             error.EndOfStream => return, // Client disconnected.
         };
 
-        messaging.dispatch(io, gpa, &player_store, &msg, &writer.interface) catch |err| switch (err) {
+        messaging.dispatch(
+            io,
+            gpa,
+            assets,
+            &player_store,
+            &services,
+            &msg,
+            &writer.interface,
+        ) catch |err| switch (err) {
             error.Canceled => |e| return e,
             error.WriteFailed => switch (writer.err.?) {
                 error.Canceled => |e| return e,
@@ -140,6 +151,7 @@ const pb = proto.pb;
 const net = std.Io.net;
 
 const logic = @import("logic.zig");
+const Assets = @import("Assets.zig");
 const messaging = @import("messaging.zig");
 const Translator = @import("channel/Translator.zig");
 const proto = @import("proto");

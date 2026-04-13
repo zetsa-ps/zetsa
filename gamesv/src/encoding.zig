@@ -57,7 +57,42 @@ pub fn packGroupManagers(
     }
 }
 
+// Assumes `out` has capacity of `Attributes.len`.
+pub fn packFightAttrs(
+    attributes: *logic.big_world.Attributes,
+    out: *std.ArrayList(pb.FightAttrOne),
+) void {
+    var it = attributes.iterator();
+
+    while (it.next()) |entry| out.appendAssumeCapacity(.{
+        .attr_id = @intFromEnum(entry.key),
+        .attr_val = entry.value.*,
+    });
+}
+
+pub fn packObjBattleInfoSync(
+    arena: Allocator,
+    battle: *logic.Services.Battle,
+    reason: u32,
+) Allocator.Error!pb.SCObjBattleInfoSync {
+    var infos: std.ArrayList(pb.ObjBattleInfo) = try .initCapacity(arena, battle.objects.len);
+    const objects = battle.objects.slice();
+
+    for (objects.items(.uuid), objects.items(.hp), objects.items(.sp)) |uuid, hp, sp| {
+        infos.appendAssumeCapacity(.{
+            .uuid = uuid.toInt(),
+            .hp = hp.toInt(),
+            .sp = sp.toInt(),
+            .alive_state = hp.aliveState().toAliveStateType(),
+            .reason = reason,
+        });
+    }
+
+    return .{ .infos = infos };
+}
+
 const PlayerStore = logic.PlayerStore;
+const Allocator = std.mem.Allocator;
 
 const logic = @import("logic.zig");
 

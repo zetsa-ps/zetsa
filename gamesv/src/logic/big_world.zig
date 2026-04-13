@@ -1,3 +1,50 @@
+pub const Hp = enum(i33) {
+    dead = 0,
+    _,
+
+    pub fn toInt(hp: Hp) u32 {
+        const int = @intFromEnum(hp);
+        if (int < 0) return 0;
+
+        return @intCast(int);
+    }
+
+    pub const AliveState = enum {
+        alive,
+        dead,
+        overhurt,
+
+        pub fn toAliveStateType(as: AliveState) u32 {
+            return @intCast(@intFromEnum(@as(proto.pb.AliveStateType, switch (as) {
+                .alive => .AST_Alive,
+                .dead => .AST_Dead,
+                .overhurt => .AST_OverHurt,
+            })));
+        }
+    };
+
+    pub fn aliveState(hp: Hp) AliveState {
+        return switch (hp) {
+            .dead => .dead,
+            else => if (@intFromEnum(hp) < 0) .overhurt else .alive,
+        };
+    }
+
+    pub fn change(hp: *Hp, chg: i32) void {
+        hp.* = @enumFromInt(@max(0, @intFromEnum(hp.*) +| chg));
+    }
+};
+
+pub const Sp = enum(u32) {
+    exhausted = 0,
+    full = 100,
+    _,
+
+    pub fn toInt(sp: Sp) u32 {
+        return @intFromEnum(sp);
+    }
+};
+
 pub const EBattlePropertyType = enum(i32) {
     none = 0,
     atk = 1,
@@ -159,6 +206,35 @@ pub const EBattlePropertyType = enum(i32) {
     spgetup_atk = 228,
 };
 
+pub const Attributes = EnumMap(EBattlePropertyType, i64);
+
+pub fn getHeroAttributes(id: tables.hero.Id, level: u32, rank: u32, out: *Attributes) void {
+    const hero = tables.hero.getById(@intFromEnum(id)).?;
+    const att_id = tables.unit_property.getById(hero.property_id).?.base_attribute_id;
+    const base_att_id = tables.template_hero.getBaseAttributeByRankAndLevel(rank, level);
+    const base_template = tables.template_value.getById(base_att_id).?;
+
+    const base_values = base_template.base_attribute;
+    const factor_template = tables.template_value.getById(att_id).?;
+
+    const factor_values = factor_template.base_attribute;
+    var factor_map: std.EnumMap(EBattlePropertyType, f32) = .init(.{});
+
+    for (factor_values) |entry| factor_map.put(
+        std.enums.fromInt(EBattlePropertyType, entry.key) orelse continue,
+        entry.value,
+    );
+
+    for (base_values) |entry| {
+        const key = std.enums.fromInt(EBattlePropertyType, entry.key) orelse continue;
+
+        out.put(key, if (factor_map.get(key)) |factor|
+            @intFromFloat(entry.value * factor)
+        else
+            0);
+    }
+}
+
 pub fn getHeroBaseAttrValue(attr: EBattlePropertyType, hero_id: u32, hero_level: u32, hero_rank: u32) i64 {
     const hero = tables.hero.getById(hero_id).?;
     const hero_att_id = tables.unit_property.getById(hero.property_id).?.base_attribute_id;
@@ -181,4 +257,31 @@ pub fn getHeroBaseAttrValue(attr: EBattlePropertyType, hero_id: u32, hero_level:
     } else return 0;
 }
 
+pub fn getEnemyBaseAttrValue(attr: EBattlePropertyType, enemy_id: u32, template_id: u32, level: u32) i64 {
+    const enemy = tables.enemy.getById(enemy_id).?;
+    const enemy_att_id = tables.unit_property.getById(enemy.property_id).?.base_attribute_id;
+
+    const enemy_base_att_id = level + 1000 * (template_id + 3000);
+
+    const base_template = tables.template_value.getById(enemy_base_att_id).?;
+    const base_values = base_template.base_attribute;
+
+    const factor_template = tables.template_value.getById(enemy_att_id);
+    const factor_values = factor_template.?.base_attribute;
+
+    for (base_values) |bv_entry| {
+        if (bv_entry.key == @intFromEnum(attr)) {
+            for (factor_values) |f_entry| {
+                if (f_entry.key == @intFromEnum(attr)) {
+                    return @intFromFloat(bv_entry.value * f_entry.value);
+                }
+            }
+        }
+    } else return 0;
+}
+
+const EnumMap = std.EnumMap;
+
 const tables = @import("../tables.zig");
+const proto = @import("proto");
+const std = @import("std");

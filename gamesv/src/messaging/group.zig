@@ -72,6 +72,13 @@ pub fn changeHeroGroupIndex(txn: Transaction(.CSProtoChangeHeroGroupIndex)) !voi
     );
 
     try txn.any.send(.CSProtoSyncPlayerData, .{ .group_mgrs = group_mgrs });
+
+    try txn.any.services.battle.reset(txn.any.gpa, player_store);
+    try txn.any.send(
+        .CSProtoObjBattleInfoSync,
+        try encoding.packObjBattleInfoSync(txn.any.arena, &txn.any.services.battle, 0),
+    );
+
     try txn.respond(.{});
 }
 

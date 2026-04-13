@@ -11,8 +11,8 @@ pub const Item = struct {
     exp: u32,
     rank: Rank,
     system_skill_levels: [SystemSkillLevel.count]SystemSkillLevel,
-    hp: Hp,
-    sp: Sp,
+    hp: logic.big_world.Hp,
+    sp: logic.big_world.Sp,
 
     pub fn initDefault(id: ID) Item {
         return .{
@@ -23,49 +23,6 @@ pub const Item = struct {
             .hp = @enumFromInt(logic.big_world.getHeroBaseAttrValue(.maxhp, @intFromEnum(id), 1, 1)),
             .sp = .full,
         };
-    }
-};
-
-pub const Hp = enum(i33) {
-    dead = 0,
-    _,
-
-    pub fn toInt(hp: Hp) u32 {
-        const int = @intFromEnum(hp);
-        if (int < 0) return 0;
-
-        return @intCast(int);
-    }
-
-    pub const AliveState = enum {
-        alive,
-        dead,
-        overhurt,
-
-        pub fn toAliveStateType(as: AliveState) u32 {
-            return @intCast(@intFromEnum(@as(proto.pb.AliveStateType, switch (as) {
-                .alive => .AST_Alive,
-                .dead => .AST_Dead,
-                .overhurt => .AST_OverHurt,
-            })));
-        }
-    };
-
-    pub fn aliveState(hp: Hp) AliveState {
-        return switch (hp) {
-            .dead => .dead,
-            else => if (@intFromEnum(hp) < 0) .overhurt else .alive,
-        };
-    }
-};
-
-pub const Sp = enum(u32) {
-    exhausted = 0,
-    full = 100,
-    _,
-
-    pub fn toInt(sp: Sp) u32 {
-        return @intFromEnum(sp);
     }
 };
 

@@ -1,0 +1,43 @@
+.{
+  .{
+    .id = 400000,
+    .city_id = 710,
+    .position = .{
+      -16.555,
+      100.446,
+      -57.374,
+    },
+    .rotation = .{
+      0,
+      26.12,
+      0,
+    },
+    .scale = 0,
+    .spawner_id = 7010930,
+    .expand_id = 0,
+    .expand_params = .{},
+    .ai_tree = 0,
+    .blueprint = 0,
+    .fsm = 0,
+    .status_reward = .{},
+    .appear_cond = .{},
+    .disappear_cond = .{},
+    .common_tag = .{},
+    .all_block_show = 0,
+    .keep_on_complete = 0,
+    .interact_options = .{
+      20,
+    },
+    .interact_override_params = .{
+      .{
+        "54",
+        "201",
+      },
+    },
+    .filter_mark = 0,
+    .random_evt_id = 0,
+    .init_status = 0,
+    .initial_complete_state = 0,
+    .world_area_ids = .{},
+  },
+}

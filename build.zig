@@ -83,6 +83,11 @@ const gamesv_assets: []const ComptimeAsset = &.{
     .asset("tables/unit_property", "assets/tables/unit_property.zon"),
     .asset("tables/world_area", "assets/tables/world_area.zon"),
     .asset("tables/world_borthpos", "assets/tables/world_borthpos.zon"),
+    .asset("tables/world_city", "assets/tables/world_city.zon"),
+    .asset("tables/world_enemy_group", "assets/tables/world_enemy_group.zon"),
+    .asset("tables/enemy", "assets/tables/enemy.zon"),
+    .asset("tables/enemy_pack", "assets/tables/enemy_pack.zon"),
+    .asset("tables/world_difficulty_obj_level", "assets/tables/world_difficulty_obj_level.zon"),
 };
 
 const cdnsv_assets: []const ComptimeAsset = &.{

@@ -50,9 +50,12 @@ pub fn main(init: process.Init.Minimal) u8 {
     defer threaded.deinit();
     const io = threaded.io();
 
+    var assets: Assets = .init(gpa);
+    defer assets.deinit();
+
     common.printStartupSplash();
 
-    return runUntilShutdown(io, app.serve, .{ gpa, io, address }) catch |err| switch (err) {
+    return runUntilShutdown(io, app.serve, .{ gpa, io, &assets, address }) catch |err| switch (err) {
         error.Canceled => return 0,
     };
 }
@@ -76,6 +79,7 @@ const debug = std.debug;
 const process = std.process;
 
 const app = @import("app.zig");
+const Assets = @import("Assets.zig");
 
 const builtin = @import("builtin");
 const common = @import("common");

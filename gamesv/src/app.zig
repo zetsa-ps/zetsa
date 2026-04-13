@@ -1,6 +1,6 @@
 const accept_delay: Io.Timeout = .{ .duration = .{ .raw = .fromSeconds(1), .clock = .awake } };
 
-pub fn serve(gpa: Allocator, io: Io, address: net.IpAddress) Io.Cancelable!u8 {
+pub fn serve(gpa: Allocator, io: Io, assets: *Assets, address: net.IpAddress) Io.Cancelable!u8 {
     const log = std.log.scoped(.@"gamesv::app");
 
     var server = address.listen(io, .{ .reuse_address = true }) catch |err| switch (err) {
@@ -25,7 +25,7 @@ pub fn serve(gpa: Allocator, io: Io, address: net.IpAddress) Io.Cancelable!u8 {
 
     while (true) {
         if (server.accept(io)) |stream| {
-            client_group.concurrent(io, channel.run, .{ io, stream, gpa }) catch |err| switch (err) {
+            client_group.concurrent(io, channel.run, .{ io, assets, stream, gpa }) catch |err| switch (err) {
                 error.ConcurrencyUnavailable => {
                     log.warn("concurrency limit reached. dropping connection from {f}", .{stream.socket.address});
                     stream.close(io);
@@ -52,4 +52,5 @@ const Allocator = std.mem.Allocator;
 const net = std.Io.net;
 
 const channel = @import("channel.zig");
+const Assets = @import("Assets.zig");
 const std = @import("std");

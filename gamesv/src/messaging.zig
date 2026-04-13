@@ -45,7 +45,9 @@ pub const AnyTransaction = struct {
     seq_no: u16,
     push_seq: u16,
     // logic-related
+    assets: *Assets,
     player_store: *logic.PlayerStore,
+    services: *logic.Services,
 
     pub fn send(txn: *AnyTransaction, comptime id: proto.CSProtoIDType, message: @field(
         proto.pb,
@@ -85,7 +87,9 @@ const BoundProtoID = blk: {
 pub fn dispatch(
     io: Io,
     gpa: Allocator,
+    assets: *Assets,
     player_store: *logic.PlayerStore,
+    services: *logic.Services,
     msg: *channel.NetMsg,
     sink: *Io.Writer,
 ) Error!void {
@@ -100,7 +104,9 @@ pub fn dispatch(
         .sink = sink,
         .seq_no = msg.data.seq_no,
         .push_seq = msg.data.push_seq,
+        .assets = assets,
         .player_store = player_store,
+        .services = services,
     };
 
     const recv_proto_id = std.enums.fromInt(BoundProtoID, msg.data.msg_id) orelse {
@@ -160,9 +166,9 @@ const Io = std.Io;
 const Allocator = std.mem.Allocator;
 
 const debug = std.debug;
-const comptimePrint = std.fmt.comptimePrint;
 
 const channel = @import("channel.zig");
+const Assets = @import("Assets.zig");
 const logic = @import("logic.zig");
 const proto = @import("proto");
 const std = @import("std");

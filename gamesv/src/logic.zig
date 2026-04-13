@@ -10,6 +10,14 @@ pub const Uuid = packed struct(u64) {
             const raw: u8 = @intCast(std.math.log2_int(u32, @intCast(@intFromEnum(fo))) + 1);
             return @enumFromInt(raw);
         }
+
+        pub fn toFightObjType(ot: ObjectType) ?pb.FightObjType {
+            const raw = @intFromEnum(ot);
+            if (raw == 0) return null;
+
+            const fo = @as(u32, 1) << @truncate(raw - 1);
+            return std.enums.fromInt(pb.FightObjType, fo);
+        }
     };
 
     pub fn hero(player_id: PlayerStore.ID, config_id: tables.hero.Id) Uuid {
@@ -17,6 +25,14 @@ pub const Uuid = packed struct(u64) {
             .player_id = player_id.toInt(),
             .config_id = @intFromEnum(config_id),
             .object_type = .fromFightObjType(.FO_Hero),
+        };
+    }
+
+    pub fn monster(id: u32, config_id: u24) Uuid {
+        return .{
+            .player_id = id,
+            .config_id = config_id,
+            .object_type = .fromFightObjType(.FO_Monster),
         };
     }
 
@@ -204,6 +220,8 @@ pub const System = enum(u32) {
     runeCompose = 10121,
     onlyChat = 99918,
 };
+
+pub const Services = @import("logic/Services.zig");
 
 pub const math = @import("logic/math.zig");
 pub const gameplay = @import("logic/gameplay.zig");
