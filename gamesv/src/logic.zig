@@ -1,4 +1,6 @@
 pub const Uuid = packed struct(u64) {
+    pub const zero: Uuid = @bitCast(@as(u64, 0));
+
     player_id: u32,
     config_id: u24,
     object_type: ObjectType,

@@ -75,15 +75,21 @@ pub fn packObjBattleInfoSync(
     battle: *logic.Services.Battle,
     reason: u32,
 ) Allocator.Error!pb.SCObjBattleInfoSync {
-    var infos: std.ArrayList(pb.ObjBattleInfo) = try .initCapacity(arena, battle.objects.len);
-    const objects = battle.objects.slice();
+    var infos: std.ArrayList(pb.ObjBattleInfo) = try .initCapacity(arena, battle.modified_count);
+    const slice = battle.objects.slice();
 
-    for (objects.items(.uuid), objects.items(.hp), objects.items(.sp)) |uuid, hp, sp| {
+    const uuid_list = slice.items(.uuid);
+    const hp_list = slice.items(.hp);
+    const sp_list = slice.items(.sp);
+
+    const modified = battle.modified();
+
+    while (modified.next()) |index| {
         infos.appendAssumeCapacity(.{
-            .uuid = uuid.toInt(),
-            .hp = hp.toInt(),
-            .sp = sp.toInt(),
-            .alive_state = hp.aliveState().toAliveStateType(),
+            .uuid = uuid_list[index].toInt(),
+            .hp = hp_list[index].toInt(),
+            .sp = sp_list[index].toInt(),
+            .alive_state = hp_list[index].aliveState().toAliveStateType(),
             .reason = reason,
         });
     }

@@ -217,15 +217,7 @@ pub fn stateUpdate(txn: Transaction(.CSProtoStateUpdate)) !void {
 
 pub fn battleInfoReduce(txn: Transaction(.CSProtoBattleInfoReduce)) !void {
     const battle = &txn.any.services.battle;
-    const frame: logic.Services.Battle.Frame = .fromReduce(txn.request);
-
-    for (txn.request.battle_info.items) |battle_info| if (battle_info.hurt_info) |hurt_info| {
-        const hp_change = hurt_info.hp_change orelse continue;
-        const target_uuid = frame.getParticipatorAt(hurt_info.tar_id orelse continue) orelse continue;
-        const index = battle.getObjectIndexByUuid(target_uuid) orelse continue;
-
-        battle.objects.items(.hp)[index].change(hp_change);
-    };
+    battle.reduce(txn.request);
 
     try txn.any.send(
         .CSProtoObjBattleInfoSync,
