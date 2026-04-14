@@ -9,7 +9,7 @@ pub const init: World = .{
         .position_x = logic.math.floatToInt(default_pos[0]),
         .position_y = logic.math.floatToInt(default_pos[1]),
         .position_z = logic.math.floatToInt(default_pos[2]),
-        .angle = @intFromFloat(default_pos[4]),
+        .angle = @trunc(default_pos[4]),
         .area_id = default_area_id,
     } }),
     .attrs = .{ .active_kind = .exploration },
@@ -43,7 +43,7 @@ pub const Map = struct {
             .position_x = logic.math.floatToInt(point[0]),
             .position_y = logic.math.floatToInt(point[1]),
             .position_z = logic.math.floatToInt(point[2]),
-            .angle = @intFromFloat(point[4]),
+            .angle = @trunc(point[4]),
             .area_id = tables.world_area.calculateBelongArea(
                 world_borthpos.city_id,
                 point[0..3].*,
@@ -56,7 +56,7 @@ pub const Map = struct {
         map.position_x = logic.math.floatToInt(point_pos[0]);
         map.position_y = logic.math.floatToInt(point_pos[1]);
         map.position_z = logic.math.floatToInt(point_pos[2]);
-        map.angle = @intFromFloat(point_pos[4]);
+        map.angle = @trunc(point_pos[4]);
     }
 };
 

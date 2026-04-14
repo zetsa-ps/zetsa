@@ -11,7 +11,7 @@ as well as a replacement for protoc known as zetsa-proto-gen.
 
 ## Requirements
 In order to build Zetsa you need:
-- Zig Compiler, version `0.16.0-dev.3133+5ec8e45f3`: [Linux](https://ziglang.org/builds/zig-x86_64-linux-0.16.0-dev.3133+5ec8e45f3.tar.xz)/[Windows](https://ziglang.org/builds/zig-x86_64-windows-0.16.0-dev.3133+5ec8e45f3.zip)
+- Zig Compiler, version `0.16.0`: [Linux](https://ziglang.org/download/0.16.0/zig-x86_64-linux-0.16.0.tar.xz)/[Windows](https://ziglang.org/download/0.16.0/zig-x86_64-windows-0.16.0.zip)
 
 #### For additional help, you can join our [discord server](https://discord.xeondev.com)
 

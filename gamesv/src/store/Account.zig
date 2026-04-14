@@ -80,7 +80,7 @@ const Io = std.Io;
 const Dir = std.Io.Dir;
 const LimitedString = common.mem.LimitedString;
 
-const max_path_bytes = std.fs.max_path_bytes;
+const max_path_bytes = Io.Dir.max_path_bytes;
 
 const store = @import("../store.zig");
 

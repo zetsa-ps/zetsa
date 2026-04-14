@@ -207,7 +207,7 @@ fn loadWorldMapTable(io: Io, out: *PlayerStore) LoadError!void {
 }
 
 const PlayerStore = logic.PlayerStore;
-const max_path_bytes = std.fs.max_path_bytes;
+const max_path_bytes = Io.Dir.max_path_bytes;
 
 const Io = std.Io;
 

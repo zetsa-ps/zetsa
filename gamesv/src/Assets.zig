@@ -64,7 +64,7 @@ pub const WorldMaps = struct {
     }
 
     fn loadOne(io: Io, arena: Allocator, id: u32) LoadOneError!Loaded {
-        var path_buf: [std.fs.max_path_bytes]u8 = undefined;
+        var path_buf: [Io.Dir.max_path_bytes]u8 = undefined;
         const path = std.fmt.bufPrint(&path_buf, "assets/maps/worldmap_{d}.bin", .{id}) catch unreachable;
 
         const content = Io.Dir.readFileAllocOptions(.cwd(), io, path, arena, .unlimited, .of(Entry.Point), null) catch |err| return switch (err) {
@@ -144,7 +144,7 @@ pub const WorldMaps = struct {
 
 const Io = std.Io;
 const Allocator = std.mem.Allocator;
-const HashMap = std.AutoArrayHashMapUnmanaged;
+const HashMap = std.array_hash_map.Auto;
 const ArenaAllocator = std.heap.ArenaAllocator;
 
 const tables = @import("tables.zig");

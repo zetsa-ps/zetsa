@@ -229,7 +229,7 @@ pub fn getHeroAttributes(id: tables.hero.Id, level: u32, rank: u32, out: *Attrib
         const key = std.enums.fromInt(EBattlePropertyType, entry.key) orelse continue;
 
         out.put(key, if (factor_map.get(key)) |factor|
-            @intFromFloat(entry.value * factor)
+            @trunc(entry.value * factor)
         else
             0);
     }
@@ -250,7 +250,7 @@ pub fn getHeroBaseAttrValue(attr: EBattlePropertyType, hero_id: u32, hero_level:
         if (bv_entry.key == @intFromEnum(attr)) {
             for (factor_values) |f_entry| {
                 if (f_entry.key == @intFromEnum(attr)) {
-                    return @intFromFloat(bv_entry.value * f_entry.value);
+                    return @trunc(bv_entry.value * f_entry.value);
                 }
             }
         }
@@ -273,7 +273,7 @@ pub fn getEnemyBaseAttrValue(attr: EBattlePropertyType, enemy_id: u32, template_
         if (bv_entry.key == @intFromEnum(attr)) {
             for (factor_values) |f_entry| {
                 if (f_entry.key == @intFromEnum(attr)) {
-                    return @intFromFloat(bv_entry.value * f_entry.value);
+                    return @trunc(bv_entry.value * f_entry.value);
                 }
             }
         }
