@@ -83,6 +83,12 @@ pub const Entry = struct {
     pub fn getId(h: *const Entry) Id {
         return @enumFromInt(h.id);
     }
+
+    pub fn getSkillSlot(h: *const Entry, id: u32) ?u32 {
+        for (h.skill_list) |s| {
+            if (s.value == id) return s.key;
+        } else return null;
+    }
 };
 
 const LangString = tables.LangString;

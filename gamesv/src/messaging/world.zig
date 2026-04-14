@@ -219,7 +219,32 @@ pub fn battleInfoReduce(txn: Transaction(.CSProtoBattleInfoReduce)) !void {
     const battle = &txn.any.services.battle;
     battle.reduce(txn.request);
 
-    try txn.any.send(
+    if (battle.modified_count != 0) try txn.any.send(
+        .CSProtoObjBattleInfoSync,
+        try encoding.packObjBattleInfoSync(txn.any.arena, battle, 0),
+    );
+}
+
+pub fn skillStart(txn: Transaction(.CSProtoSkillStart)) !void {
+    const battle = &txn.any.services.battle;
+
+    const uuid: logic.Uuid = @bitCast(txn.request.unit_id orelse return);
+    if (uuid.object_type.toFightObjType() != .FO_Hero) return;
+
+    const skill = txn.request.skill orelse return;
+    const skill_id = skill.skill_id orelse return;
+    const config = tables.hero.getById(uuid.config_id) orelse return;
+    const slot = std.enums.fromInt(
+        big_world.ESkillSlotType,
+        config.getSkillSlot(skill_id) orelse return,
+    ) orelse return;
+
+    switch (slot) {
+        .ultra_skill => battle.drainSp(uuid),
+        else => {},
+    }
+
+    if (battle.modified_count != 0) try txn.any.send(
         .CSProtoObjBattleInfoSync,
         try encoding.packObjBattleInfoSync(txn.any.arena, battle, 0),
     );

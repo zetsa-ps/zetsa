@@ -43,6 +43,10 @@ pub const Sp = enum(u32) {
     pub fn toInt(sp: Sp) u32 {
         return @intFromEnum(sp);
     }
+
+    pub fn fromInt(int: u32) Sp {
+        return @enumFromInt(@min(@intFromEnum(Sp.full), int));
+    }
 };
 
 pub const EBattlePropertyType = enum(i32) {
@@ -204,6 +208,40 @@ pub const EBattlePropertyType = enum(i32) {
     spr_sec_back = 226,
     spret_auto = 227,
     spgetup_atk = 228,
+};
+
+pub const ESkillSlotType = enum(i32) {
+    none = 0,
+    attack = 1,
+    skill1 = 2,
+    skill2 = 3,
+    ultra_skill = 4,
+    command_pet_ultra = 5,
+    coop_skill = 11,
+    ai_legal_slot_range = 100,
+    evade = 101,
+    evade_back = 102,
+    jump = 114,
+    double_jump = 115,
+    exit_skill = 201,
+    enter_dash = 202,
+    enter_skill = 203,
+    evade_attack = 204,
+    pet_ultra_blink = 205,
+    pet_ultra = 206,
+    evade_boost_attack = 207,
+    player_joint_strike_skill = 208,
+    counter_measures = 209,
+    aerial_attack = 301,
+    jump_back = 401,
+    jump_left = 402,
+    jump_right = 403,
+    pet_puzzle_skill = 501,
+    pet_puzzle_blink = 502,
+    pet_communicate = 504,
+    pet_joint_strike_skill = 601,
+    kibo_versus_common_skill1 = 701,
+    kibo_versus_common_skill2 = 702,
 };
 
 pub const Attributes = EnumMap(EBattlePropertyType, i64);

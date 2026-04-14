@@ -148,27 +148,65 @@ pub fn reduce(battle: *Battle, message: *const pb.BattleInfoReduce) void {
 
     const slice = battle.objects.slice();
     const hp_list = slice.items(.hp);
+    const sp_list = slice.items(.sp);
     const node_list = slice.items(.next);
     const uuid_list = slice.items(.uuid);
     const state_list = slice.items(.state);
 
     for (message.battle_info.items) |battle_info| if (battle_info.hurt_info) |hurt_info| {
-        const hp_change = hurt_info.hp_change orelse continue;
-        const target_uuid = frame.getParticipatorAt(hurt_info.tar_id orelse continue) orelse continue;
-        const index: u32 = @intCast(std.mem.findScalar(Uuid, uuid_list, target_uuid) orelse continue);
+        if (hurt_info.hp_change) |hp_change| {
+            const target_uuid = frame.getParticipatorAt(hurt_info.tar_id orelse continue) orelse continue;
+            const index: u32 = @intCast(std.mem.findScalar(Uuid, uuid_list, target_uuid) orelse continue);
 
-        switch (state_list[index]) {
-            .idle => {
-                state_list[index] = .modified;
-                battle.modified_list.prepend(node_list, index);
-                battle.modified_count += 1;
-            },
-            .modified => {},
-            .free => continue,
+            modify: switch (state_list[index]) {
+                .idle => {
+                    state_list[index] = .modified;
+                    battle.modified_list.prepend(node_list, index);
+                    battle.modified_count += 1;
+                    continue :modify .modified;
+                },
+                .modified => hp_list[index].change(hp_change),
+                .free => {},
+            }
         }
 
-        hp_list[index].change(hp_change);
+        if (hurt_info.from_sp) |from_sp| if (from_sp >= 0) {
+            const source_uuid = frame.getParticipatorAt(hurt_info.from_id orelse continue) orelse continue;
+            const index: u32 = @intCast(std.mem.findScalar(Uuid, uuid_list, source_uuid) orelse continue);
+
+            modify: switch (state_list[index]) {
+                .idle => {
+                    state_list[index] = .modified;
+                    battle.modified_list.prepend(node_list, index);
+                    battle.modified_count += 1;
+                    continue :modify .modified;
+                },
+                .modified => sp_list[index] = .fromInt(@intCast(@divFloor(from_sp, 100))),
+                .free => {},
+            }
+        };
     };
+}
+
+pub fn drainSp(battle: *Battle, uuid: Uuid) void {
+    const slice = battle.objects.slice();
+    const uuid_list = slice.items(.uuid);
+    const state_list = slice.items(.state);
+    const node_list = slice.items(.next);
+    const sp_list = slice.items(.sp);
+
+    const index: u32 = @intCast(std.mem.findScalar(Uuid, uuid_list, uuid) orelse return);
+
+    modify: switch (state_list[index]) {
+        .idle => {
+            state_list[index] = .modified;
+            battle.modified_list.prepend(node_list, index);
+            battle.modified_count += 1;
+            continue :modify .modified;
+        },
+        .modified => sp_list[index] = .exhausted,
+        .free => {},
+    }
 }
 
 pub fn reset(
