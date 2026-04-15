@@ -223,6 +223,11 @@ pub fn battleInfoReduce(txn: Transaction(.CSProtoBattleInfoReduce)) !void {
         .CSProtoObjBattleInfoSync,
         try encoding.packObjBattleInfoSync(txn.any.arena, battle, 0),
     );
+
+    switch (battle.hatred.acknowledge()) {
+        .reset => try txn.any.send(.SCProtoWorldHatredSync, .{}),
+        .nothing => {},
+    }
 }
 
 pub fn skillStart(txn: Transaction(.CSProtoSkillStart)) !void {

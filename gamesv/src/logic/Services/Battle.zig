@@ -3,7 +3,8 @@ const log = std.log.scoped(.@"gamesv::logic::Services::Battle");
 objects: MultiArrayList(Object),
 free_list: Object.List,
 modified_list: Object.List,
-modified_count: u32 = 0,
+modified_count: u32,
+hatred: Hatred,
 map_config: ?*const Assets.WorldMaps.Entry,
 
 pub const init: Battle = .{
@@ -11,7 +12,45 @@ pub const init: Battle = .{
     .free_list = .empty,
     .modified_list = .empty,
     .modified_count = 0,
+    .hatred = .init,
     .map_config = null,
+};
+
+pub const Hatred = enum(u32) {
+    pub const init: Hatred = .reset_acknowledged;
+
+    reset_pending = 0,
+    reset_acknowledged = std.math.maxInt(u32),
+    _,
+
+    pub const Ack = enum {
+        nothing,
+        reset,
+    };
+
+    pub fn triggerMany(h: *Hatred, count: u32) void {
+        h.* = switch (h.*) {
+            .reset_pending, .reset_acknowledged => @enumFromInt(count),
+            _ => |active| @enumFromInt(@intFromEnum(active) +| count),
+        };
+    }
+
+    pub fn decrement(h: *Hatred) void {
+        h.* = switch (h.*) {
+            .reset_pending, .reset_acknowledged => |unchanged| unchanged,
+            _ => @enumFromInt(@intFromEnum(h.*) -| 1),
+        };
+    }
+
+    pub fn acknowledge(h: *Hatred) Ack {
+        switch (h.*) {
+            .reset_pending => {
+                h.* = .reset_acknowledged;
+                return .reset;
+            },
+            .reset_acknowledged, _ => return .nothing,
+        }
+    }
 };
 
 pub const Object = struct {
@@ -168,6 +207,14 @@ pub fn reduce(battle: *Battle, message: *const pb.BattleInfoReduce) void {
                 .modified => hp_list[index].change(hp_change),
                 .free => {},
             }
+
+            switch (hp_list[index].aliveState()) {
+                .dead => switch (target_uuid.object_type.toFightObjType() orelse .FO_None) {
+                    .FO_Monster => battle.hatred.decrement(),
+                    else => {},
+                },
+                .alive, .overhurt => {},
+            }
         }
 
         if (hurt_info.from_sp) |from_sp| if (from_sp >= 0) {
@@ -318,6 +365,8 @@ pub fn instantiateEnemyGroup(battle: *Battle, gpa: Allocator, id: u32) Allocator
         }
     } else if (batch.count != 0)
         try battle.add(gpa, batch.toSlices());
+
+    battle.hatred.triggerMany(@truncate(enemy_group.enemy_list.len));
 }
 
 fn getEnemyLevel(enemy_pack: *const tables.enemy_pack.Entry, map_id: u32, area_id: u32, difficulty: u32) u32 {
