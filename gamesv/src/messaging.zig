@@ -29,6 +29,10 @@ pub fn Transaction(comptime id: proto.CSProtoIDType) type {
         pub inline fn respond(txn: @This(), response: Response) Io.Writer.Error!void {
             return txn.any.send(proto_id, response);
         }
+
+        pub inline fn respondError(txn: @This(), err_code: proto.ErrCode) Io.Writer.Error!void {
+            return txn.any.sendError(proto_id, err_code);
+        }
     };
 }
 
@@ -54,15 +58,39 @@ pub const AnyTransaction = struct {
         @as(MsgGenCode, @import("msg_gen_code")).entries[@intFromEnum(id)].response_name orelse
             @compileError("no response for " ++ @tagName(id)),
     )) Io.Writer.Error!void {
-        try channel.writeMsg(txn.sink, &.{
-            .flag = 0,
-            .msg_id = @intFromEnum(id),
-            .error_id = 0, // TODO: a way to send errors
-            .seq_no = txn.seq_no,
-            .push_seq = txn.push_seq,
-            .unk_1 = 0,
-            .unk_2 = 0,
-        }, message);
+        try channel.writeMsg(
+            txn.sink,
+            &.{
+                .flag = 0,
+                .msg_id = @intFromEnum(id),
+                .error_id = 0,
+                .seq_no = txn.seq_no,
+                .push_seq = txn.push_seq,
+                .unk_1 = 0,
+                .unk_2 = 0,
+            },
+            message,
+        );
+    }
+
+    pub fn sendError(
+        txn: *AnyTransaction,
+        comptime id: proto.CSProtoIDType,
+        err_code: proto.ErrCode,
+    ) Io.Writer.Error!void {
+        try channel.writeMsg(
+            txn.sink,
+            &.{
+                .flag = 0,
+                .msg_id = @intFromEnum(id),
+                .error_id = @intFromEnum(err_code),
+                .seq_no = txn.seq_no,
+                .push_seq = txn.push_seq,
+                .unk_1 = 0,
+                .unk_2 = 0,
+            },
+            .{},
+        );
     }
 };
 

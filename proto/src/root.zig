@@ -252,6 +252,7 @@ fn Optional(comptime T: type) ?type {
 
 pub const pb = @import("azur_generated");
 pub const CSProtoIDType = @import("constants.zig").CSProtoIDType;
+pub const ErrCode = @import("constants.zig").ErrCode;
 
 const Io = std.Io;
 const Allocator = std.mem.Allocator;
