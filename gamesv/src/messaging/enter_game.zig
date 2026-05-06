@@ -1,35 +1,49 @@
 pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
     const log = std.log.scoped(.CSProtoEnterGame);
     const raw_open_id = txn.request.open_id orelse {
-        log.warn("received null open_id", .{});
-        return;
+        const msg = "received null open_id";
+
+        log.warn("{s}", .{msg});
+
+        return try kickPlayer(txn.any, msg);
     };
 
     log.debug("open_id: '{s}'", .{raw_open_id});
 
     const open_id = store.Account.OpenID.init(raw_open_id) catch |err| switch (err) {
-        error.TooLongString => return, // TODO: send an error to the client.
+        error.TooLongString => return try kickPlayer(txn.any, "received open_id is too long"),
     };
 
     if (store.Account.fetch(txn.any.io, &open_id)) |account| {
         txn.any.player_store.id = @enumFromInt(account.player_id);
         store.player.loadAll(txn.any.io, txn.any.player_store) catch |err| {
-            log.warn(
+            const msg = try std.fmt.allocPrint(
+                txn.any.arena,
                 "failed to load store of player with id {d}: {t}",
                 .{ account.player_id, err },
             );
-            return;
+
+            log.warn("{s}", .{msg});
+
+            return try kickPlayer(txn.any, msg);
         };
     } else |err| switch (err) {
         error.Canceled => |e| return e,
-        error.InvalidOpenID, error.InputOutput => return,
+        error.InvalidOpenID, error.InputOutput => return try kickPlayer(txn.any, "invalid open_id"),
         error.Corrupted => {
-            log.warn("account with open_id '{s}' is corrupted", .{raw_open_id});
-            return;
+            const msg = try std.fmt.allocPrint(
+                txn.any.arena,
+                "account with open_id '{s}' is corrupted",
+                .{raw_open_id},
+            );
+
+            log.warn("{s}", .{msg});
+
+            return try kickPlayer(txn.any, msg);
         },
         error.NotFound => {
             const account = store.Account.create(txn.any.io, &open_id) catch |create_err| switch (create_err) {
-                error.InvalidOpenID, error.InputOutput => return,
+                error.InvalidOpenID, error.InputOutput => return try kickPlayer(txn.any, "invalid open_id"),
             };
 
             txn.any.player_store.id = @enumFromInt(account.player_id);
@@ -41,8 +55,15 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
                 defer _ = txn.any.io.swapCancelProtection(old_cancel_protection);
 
                 store.player.saveAll(txn.any.io, txn.any.player_store) catch |save_err| {
-                    log.warn("failed to save player store upon first entrance: {t}", .{save_err});
-                    return;
+                    const msg = try std.fmt.allocPrint(
+                        txn.any.arena,
+                        "failed to save player store upon first entrance: {t}",
+                        .{save_err},
+                    );
+
+                    log.warn("{s}", .{msg});
+
+                    return try kickPlayer(txn.any, msg);
                 };
             }
         },
@@ -206,6 +227,17 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
     });
 
     try txn.any.send(.CSProtoGMSystemCloseSync, .{ .syslist = syslist });
+}
+
+fn kickPlayer(txn: *messaging.AnyTransaction, reason: []const u8) !void {
+    return try txn.sendErrorMsg(
+        .CSProtoRetrun2Login,
+        .Ban,
+        .{
+            .timestamp = 1,
+            .reason = reason,
+        },
+    );
 }
 
 const PlayerStore = logic.PlayerStore;

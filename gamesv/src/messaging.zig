@@ -33,6 +33,10 @@ pub fn Transaction(comptime id: proto.CSProtoIDType) type {
         pub inline fn respondError(txn: @This(), err_code: proto.ErrCode) Io.Writer.Error!void {
             return txn.any.sendError(proto_id, err_code);
         }
+
+        pub inline fn respondErrorMsg(txn: @This(), err_code: proto.ErrCode, response: Response) Io.Writer.Error!void {
+            return txn.any.sendErrorMsg(proto_id, err_code, response);
+        }
     };
 }
 
@@ -90,6 +94,31 @@ pub const AnyTransaction = struct {
                 .unk_2 = 0,
             },
             .{},
+        );
+    }
+
+    pub fn sendErrorMsg(
+        txn: *AnyTransaction,
+        comptime id: proto.CSProtoIDType,
+        err_code: proto.ErrCode,
+        message: @field(
+            proto.pb,
+            @as(MsgGenCode, @import("msg_gen_code")).entries[@intFromEnum(id)].response_name orelse
+                @compileError("no response for " ++ @tagName(id)),
+        ),
+    ) Io.Writer.Error!void {
+        try channel.writeMsg(
+            txn.sink,
+            &.{
+                .flag = 0,
+                .msg_id = @intFromEnum(id),
+                .error_id = @intFromEnum(err_code),
+                .seq_no = txn.seq_no,
+                .push_seq = txn.push_seq,
+                .unk_1 = 0,
+                .unk_2 = 0,
+            },
+            message,
         );
     }
 };

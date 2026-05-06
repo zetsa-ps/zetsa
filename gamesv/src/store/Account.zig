@@ -72,7 +72,7 @@ pub fn create(io: Io, open_id: *const OpenID) CreateError!Account {
 pub const SanitizeOpenIDError = error{InvalidOpenID};
 
 fn sanitizeOpenID(open_id: *const OpenID) SanitizeOpenIDError!void {
-    for (open_id.view()) |char| if (!std.ascii.isAlphanumeric(char))
+    for (open_id.view()) |char| if (!(std.ascii.isAlphanumeric(char) or char == '-' or char == '_'))
         return error.InvalidOpenID;
 }
 
