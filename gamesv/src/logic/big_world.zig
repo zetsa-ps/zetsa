@@ -318,6 +318,69 @@ pub fn getEnemyBaseAttrValue(attr: EBattlePropertyType, enemy_id: u32, template_
     } else return 0;
 }
 
+pub fn getSoulEssenceAttributes(id: u32, level: u32, rank: u32, out: *Attributes) void {
+    for (tables.soulessence_rank.getChildren(id).?[rank - 1].rank_up_attribute_all) |entry| {
+        const key = std.enums.fromInt(EBattlePropertyType, entry.key) orelse continue;
+        out.put(
+            key,
+            (out.get(key) orelse 0) + scaledAttrIncrement(key, entry.value),
+        );
+    }
+
+    for (tables.soulessence_value.getById(tables.soulessence.getById(id).?.attribute * 1000 + level).?.base_attribute) |entry| {
+        const key = std.enums.fromInt(EBattlePropertyType, entry.key) orelse continue;
+        out.put(key, (out.get(key) orelse 0) + scaledAttrIncrement(
+            key,
+            entry.value,
+        ));
+    }
+}
+
+pub fn getSoulEssenceBaseAttrValue(attr: EBattlePropertyType, id: u32, level: u32, rank: u32) i64 {
+    var total: i64 = 0;
+
+    if (tables.soulessence_rank.getChildren(id)) |children| {
+        for (children[rank - 1].rank_up_attribute_all) |entry| {
+            const key = std.enums.fromInt(EBattlePropertyType, entry.key) orelse continue;
+            if (key == attr) {
+                total += scaledAttrIncrement(key, entry.value);
+                break;
+            }
+        }
+    }
+
+    if (tables.soulessence_value.getById(tables.soulessence.getById(id).?.attribute * 1000 + level)) |base| {
+        for (base.base_attribute) |entry| {
+            const key = std.enums.fromInt(EBattlePropertyType, entry.key) orelse continue;
+            if (key == attr) {
+                total += scaledAttrIncrement(key, entry.value);
+                break;
+            }
+        }
+    }
+
+    return total;
+}
+
+fn scaledAttrIncrement(key: EBattlePropertyType, value: anytype) i64 {
+    const is_special_att = switch (key) {
+        .atk, .def, .mdef, .maxhp, .weakness_point_max, .mastery => true,
+        else => false,
+    };
+
+    return switch (@typeInfo(@TypeOf(value))) {
+        .int, .comptime_int => if (is_special_att)
+            @as(i64, @intCast(value * 10000))
+        else
+            @as(i64, @intCast(value)),
+        .float, .comptime_float => if (is_special_att)
+            @as(i64, @intFromFloat(@floor(value * 10000.0)))
+        else
+            @as(i64, @intFromFloat(@floor(value))),
+        else => @compileError("Unsupported value type: " ++ @typeName(@TypeOf(value))),
+    };
+}
+
 const EnumMap = std.EnumMap;
 
 const tables = @import("../tables.zig");

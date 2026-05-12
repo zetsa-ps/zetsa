@@ -160,6 +160,38 @@ pub fn saveEnumMap(
     writer.flush() catch return error.InputOutput;
 }
 
+// Saves an `ArrayHashMap` (Auto) to the specified `path` as a TSV.
+// * Creates the file and full path in case it doesn't exist
+// * The caller must block cancelation requests
+pub fn saveAutoArrayHashMap(
+    comptime K: type,
+    comptime V: type,
+    io: Io,
+    path: []const u8,
+    data: *const std.array_hash_map.Auto(K, V),
+) SaveTableError!void {
+    const file = createFilePath(io, .cwd(), path) catch return error.InputOutput;
+    defer file.close(io);
+
+    var fw_buf: [1024]u8 = undefined;
+    var fw = file.writer(io, &fw_buf);
+    const writer = &fw.interface;
+
+    var iterator = @constCast(data).iterator(); // We won't be modifying anything.
+
+    while (iterator.next()) |entry| {
+        writeTsvField(K, writer, entry.key_ptr.*) catch return error.InputOutput;
+
+        inline for (@typeInfo(V).@"struct".fields) |field|
+            writeTsvField(field.type, writer, @field(entry.value_ptr.*, field.name)) catch
+                return error.InputOutput;
+
+        writer.writeByte('\n') catch return error.InputOutput;
+    }
+
+    writer.flush() catch return error.InputOutput;
+}
+
 fn writeTsvField(comptime F: type, writer: *Io.Writer, value: F) Io.Writer.Error!void {
     switch (@typeInfo(F)) {
         .int => try writer.print("{d}\t", .{value}),
@@ -223,6 +255,48 @@ pub fn loadEnumMap(
         }
 
         out.put(key, value);
+    }
+}
+
+pub fn loadAutoArrayHashMap(
+    comptime K: type,
+    comptime V: type,
+    io: Io,
+    path: []const u8,
+    out: *std.array_hash_map.Auto(K, V),
+) LoadTableError!void {
+    const file = Dir.openFile(.cwd(), io, path, .{}) catch |err| return switch (err) {
+        error.Canceled => |e| e,
+        error.FileNotFound => error.NotFound,
+        else => error.InputOutput,
+    };
+
+    defer file.close(io);
+
+    var fr_buf: [1024]u8 = undefined;
+    var fr = file.reader(io, &fr_buf);
+    const reader = &fr.interface;
+
+    while (true) {
+        const maybe_line = reader.takeDelimiter('\n') catch |err| return switch (err) {
+            error.ReadFailed => switch (fr.err.?) {
+                error.Canceled => |e| e,
+                else => error.InputOutput,
+            },
+            else => error.InputOutput,
+        };
+
+        const line = maybe_line orelse break;
+
+        var row = std.mem.splitScalar(u8, unclrf(line), '\t');
+        const key = try parseTsvField(K, &row);
+        var value: V = undefined;
+
+        inline for (@typeInfo(V).@"struct".fields) |field| {
+            @field(value, field.name) = try parseTsvField(field.type, &row);
+        }
+
+        out.putAssumeCapacity(key, value);
     }
 }
 

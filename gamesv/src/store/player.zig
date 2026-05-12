@@ -8,6 +8,7 @@ pub fn saveAll(io: Io, player_store: *const PlayerStore) SaveError!void {
         saveWorldMapTable,
         saveWorldAttributes,
         saveFormationTable,
+        saveSoulEssenceTable,
     };
 
     const Result = union(enum) {
@@ -113,6 +114,25 @@ pub fn saveFormationTable(io: Io, player_store: *const PlayerStore) SaveError!vo
     );
 }
 
+pub fn saveSoulEssenceTable(io: Io, player_store: *const PlayerStore) SaveError!void {
+    try io.checkCancel();
+
+    const old_cancel_protection = io.swapCancelProtection(.blocked);
+    defer _ = io.swapCancelProtection(old_cancel_protection);
+
+    const id = player_store.id.toInt();
+    var path_buf: [max_path_bytes]u8 = undefined;
+
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/soulessencetab", .{id}) catch unreachable;
+    try store.saveAutoArrayHashMap(
+        u32,
+        PlayerStore.SoulEssence.Item,
+        io,
+        path,
+        &player_store.soul_essence.item_map,
+    );
+}
+
 pub const LoadError = store.LoadAttrsetError;
 
 // Loads all of the `PlayerStore` modules.
@@ -124,6 +144,7 @@ pub fn loadAll(io: Io, out: *PlayerStore) LoadError!void {
         loadLineupTable,
         loadWorldAttributes,
         loadWorldMapTable,
+        loadSoulEssenceTable,
     };
 
     const Result = union(enum) {
@@ -203,6 +224,21 @@ fn loadWorldMapTable(io: Io, out: *PlayerStore) LoadError!void {
         io,
         path,
         &out.world.maps,
+    );
+}
+
+fn loadSoulEssenceTable(io: Io, out: *PlayerStore) LoadError!void {
+    const id = out.id.toInt();
+    var path_buf: [max_path_bytes]u8 = undefined;
+
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/soulessencetab", .{id}) catch unreachable;
+
+    try store.loadAutoArrayHashMap(
+        u32,
+        PlayerStore.SoulEssence.Item,
+        io,
+        path,
+        &out.soul_essence.item_map,
     );
 }
 

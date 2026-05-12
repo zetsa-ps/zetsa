@@ -53,7 +53,6 @@ pub fn enterWorldMap(txn: Transaction(.CSProtoEnterWorldMap)) !void {
 
     try sendWorldMapSync(txn.any, txn.request.client_trans_data);
 
-    try sendBattleHeroInfoSync(txn.any);
     try sendHeroAttrInfoSync(txn.any);
 
     try txn.any.send(
@@ -417,22 +416,20 @@ fn sendWorldMapSync(txn: *AnyTransaction, ctd: ?u32) !void {
     });
 }
 
-fn sendBattleHeroInfoSync(txn: *AnyTransaction) !void {
-    const player_store = txn.player_store;
+fn sendHeroAttrInfoSync(txn: *AnyTransaction) !void {
+    const hero_count = PlayerStore.Hero.ItemMap.len - 1;
+    const module_count = 2;
+    const sub_module_count = 1;
 
-    var heros_buf: [PlayerStore.Hero.ItemMap.len - 1]pb.FightHeroInfo = undefined;
-    var heros: std.ArrayList(pb.FightHeroInfo) = .initBuffer(&heros_buf);
+    var heroes_buf: [hero_count]pb.HeroAttrInfo = undefined;
+    var modules_buf: [hero_count * module_count]pb.HeroAttrModuleInfo = undefined;
+    var sub_modules_buf: [hero_count * module_count * sub_module_count]pb.HeroAttrSubModuleInfo = undefined;
+    var attrs_buf: [hero_count * module_count * sub_module_count * big_world.Attributes.len]pb.FightAttrOne = undefined;
 
-    var oinfo_buf: [1]pb.FightOrnamentInfo = undefined;
-    var oinfo: std.ArrayList(pb.FightOrnamentInfo) = .initBuffer(&oinfo_buf);
+    var heroes: std.ArrayList(pb.HeroAttrInfo) = .initBuffer(&heroes_buf);
 
-    oinfo.appendAssumeCapacity(.{
-        .id = 0,
-        .attrs = .{},
-        .main_attrs = .{},
-    });
-
-    var it = player_store.hero.item_map.iterator();
+    var it = txn.player_store.hero.item_map.iterator();
+    var i: usize = 0;
 
     while (it.next()) |entry| {
         const hero_id = entry.key;
@@ -443,84 +440,23 @@ fn sendBattleHeroInfoSync(txn: *AnyTransaction) !void {
             .male => tables.game.avatar_hero_id_female,
         })) continue;
 
-        const conf = tables.hero.getById(@intFromEnum(hero_id)).?;
-        const uuid: logic.Uuid = .hero(player_store.id, hero_id);
-
-        var skill_infos: pb.HeroSkillInfos = .{ .skills = try .initCapacity(txn.arena, conf.skill_list.len) };
-
-        for (conf.skill_list) |skill| skill_infos.skills.appendAssumeCapacity(.{
-            .skill_id = skill.value,
-            .skill_level = 1,
-        });
-
-        var map: big_world.Attributes = .init(.{});
-        big_world.getHeroAttributes(hero_id, 1, 1, &map);
-
-        var attrs: std.ArrayList(pb.FightAttrOne) = try .initCapacity(txn.arena, big_world.Attributes.len);
-        encoding.packFightAttrs(&map, &attrs);
-
-        heros.appendAssumeCapacity(.{
-            .hero_guid = @truncate(uuid.toInt()),
-            .hero_conf_id = conf.id,
-            .winfo = .{ .attrs = .{} },
-            .strategy = 0,
-            .attrs = .{ .attrs = attrs },
-            .skills = skill_infos,
-            .hp = hero.hp.toInt(),
-            .sp = hero.sp.toInt(),
-            .lv = hero.lv.toInt(),
-            .rank = hero.rank.toInt(),
-            .star = 0,
-            .wainfo = .{ .id = conf.weapon_default },
-            .wardrobeinfos = .{
-                .sex = @intFromEnum(pb.PlayerSexType.PST_FEMALE),
-                .height = 90,
-                .complexion = 0,
-            },
-            .oinfo = oinfo,
-            .suitSkills = .{},
-            .star_gifts = .empty,
-            .favor_lv = 1,
-            .time = @intCast(txn.time.toSeconds()),
-            .buffs = .{ .attrs = .empty },
-        });
-    }
-
-    try txn.send(.CSProtoBattleHeroInfoSync, .{ .heros = heros });
-}
-
-fn sendHeroAttrInfoSync(txn: *AnyTransaction) !void {
-    var heros_buf: [PlayerStore.Hero.ItemMap.len - 1]pb.HeroAttrInfo = undefined;
-    var modules_buf: [PlayerStore.Hero.ItemMap.len - 1]pb.HeroAttrModuleInfo = undefined;
-    var sub_modules_buf: [PlayerStore.Hero.ItemMap.len - 1]pb.HeroAttrSubModuleInfo = undefined;
-
-    var heros: std.ArrayList(pb.HeroAttrInfo) = .initBuffer(&heros_buf);
-    var modules: std.ArrayList(pb.HeroAttrModuleInfo) = .initBuffer(&modules_buf);
-    var sub_modules: std.ArrayList(pb.HeroAttrSubModuleInfo) = .initBuffer(&sub_modules_buf);
-
-    var it = txn.player_store.hero.item_map.iterator();
-
-    while (it.next()) |entry| {
-        const hero_id = entry.key;
-
-        if (@intFromEnum(hero_id) == @as(u32, switch (txn.player_store.basic_info.sex) {
-            .female => tables.game.avatar_hero_id_male,
-            .male => tables.game.avatar_hero_id_female,
-        })) continue;
+        var hero_modules: std.ArrayList(pb.HeroAttrModuleInfo) = .initBuffer(modules_buf[i * module_count .. i * module_count + module_count]);
 
         const uuid: logic.Uuid = .hero(txn.player_store.id, hero_id);
         const conf = tables.hero.getById(@intFromEnum(hero_id)).?;
 
-        var skills: std.ArrayList(pb.UnitSkillInfo) = try .initCapacity(txn.arena, conf.skill_list.len + conf.aerial_skill_list.len + conf.passive_skill_list.len + conf.backup_skill_list.len + 1);
+        var basic_mod_sub_mods: std.ArrayList(pb.HeroAttrSubModuleInfo) = .initBuffer(sub_modules_buf[(i * module_count) * sub_module_count .. (i * module_count + 1) * sub_module_count]);
 
-        for (conf.skill_list) |skill| skills.appendAssumeCapacity(.{
+        var hero_skills: std.ArrayList(pb.UnitSkillInfo) = try .initCapacity(txn.arena, conf.skill_list.len + conf.aerial_skill_list.len + conf.passive_skill_list.len + conf.backup_skill_list.len + 1);
+
+        for (conf.skill_list) |skill| hero_skills.appendAssumeCapacity(.{
             .skill_id = skill.value,
             .skill_slot = skill.key,
             .skill_lv = 1,
             .type = 0,
         });
 
-        for (conf.aerial_skill_list) |skill| skills.appendAssumeCapacity(.{
+        for (conf.aerial_skill_list) |skill| hero_skills.appendAssumeCapacity(.{
             .skill_id = skill.value,
             .skill_slot = skill.key,
             .skill_lv = 1,
@@ -528,46 +464,91 @@ fn sendHeroAttrInfoSync(txn: *AnyTransaction) !void {
         });
 
         for (conf.passive_skill_list) |id| {
-            skills.appendAssumeCapacity(.{ .skill_id = id, .skill_lv = 1, .type = 0 });
+            hero_skills.appendAssumeCapacity(.{ .skill_id = id, .skill_lv = 1, .type = 0 });
         }
 
         for (conf.backup_skill_list) |id| {
-            skills.appendAssumeCapacity(.{ .skill_id = id, .skill_lv = 1, .type = 0 });
+            hero_skills.appendAssumeCapacity(.{ .skill_id = id, .skill_lv = 1, .type = 0 });
         }
 
-        skills.appendAssumeCapacity(.{
+        hero_skills.appendAssumeCapacity(.{
             .skill_id = conf.attack_skill,
             .skill_slot = 1,
             .skill_lv = 1,
             .type = 0,
         });
 
-        var map: big_world.Attributes = .init(.{});
-        big_world.getHeroAttributes(hero_id, 1, 1, &map);
+        var hero_attr_map: big_world.Attributes = .init(.{});
+        big_world.getHeroAttributes(
+            hero_id,
+            @intFromEnum(hero.lv),
+            @intFromEnum(hero.rank),
+            &hero_attr_map,
+        );
 
-        var attrs: std.ArrayList(pb.FightAttrOne) = try .initCapacity(txn.arena, big_world.Attributes.len);
-        encoding.packFightAttrs(&map, &attrs);
+        var hero_attrs: std.ArrayList(pb.FightAttrOne) = .initBuffer(attrs_buf[(i * module_count) * big_world.Attributes.len .. (i * module_count) * big_world.Attributes.len + big_world.Attributes.len]);
+        encoding.packFightAttrs(&hero_attr_map, &hero_attrs);
 
-        sub_modules.appendAssumeCapacity(.{
+        basic_mod_sub_mods.appendAssumeCapacity(.{
             .sub_module_id = 0,
-            .attrs = .{ .attrs = attrs },
-            .skills = skills,
+            .attrs = .{ .attrs = hero_attrs },
+            .skills = hero_skills,
         });
 
-        modules.appendAssumeCapacity(.{
+        hero_modules.appendAssumeCapacity(.{
             .module_type = @intFromEnum(pb.HeroAttrModuleType.HAMT_HERO_BASIC),
-            .sub_modules = sub_modules,
+            .sub_modules = basic_mod_sub_mods,
         });
 
-        heros.appendAssumeCapacity(.{
+        if (txn.player_store.soul_essence.item_map.get(hero.soul_essence_id)) |se| {
+            const se_cfg = tables.soulessence.getById(hero.soul_essence_id).?;
+
+            var se_mod_sub_mods: std.ArrayList(pb.HeroAttrSubModuleInfo) = .initBuffer(sub_modules_buf[(i * module_count + 1) * sub_module_count .. (i * module_count + 2) * sub_module_count]);
+
+            var se_skills_buf: [1]pb.UnitSkillInfo = undefined;
+            var se_skills: std.ArrayList(pb.UnitSkillInfo) = .initBuffer(&se_skills_buf);
+            se_skills.appendAssumeCapacity(.{
+                .skill_id = se_cfg.reishi_skill,
+                .skill_lv = @intFromEnum(se.stars),
+                .skill_slot = 0,
+                .type = 0,
+            });
+
+            var se_attr_map: big_world.Attributes = .init(.{});
+            big_world.getSoulEssenceAttributes(
+                hero.soul_essence_id,
+                se.lv,
+                @intFromEnum(se.rank),
+                &se_attr_map,
+            );
+
+            const se_attrs_slice = attrs_buf[(i * module_count + 1) * big_world.Attributes.len .. (i * module_count + 1) * big_world.Attributes.len + big_world.Attributes.len];
+            var se_attrs_list: std.ArrayList(pb.FightAttrOne) = .initBuffer(se_attrs_slice);
+            encoding.packFightAttrs(&se_attr_map, &se_attrs_list);
+
+            se_mod_sub_mods.appendAssumeCapacity(.{
+                .sub_module_id = 0,
+                .attrs = .{ .attrs = se_attrs_list },
+                .skills = se_skills,
+            });
+
+            hero_modules.appendAssumeCapacity(.{
+                .module_type = @intFromEnum(pb.HeroAttrModuleType.HAMT_SOULESSENCE),
+                .sub_modules = se_mod_sub_mods,
+            });
+        }
+
+        heroes.appendAssumeCapacity(.{
             .hero_guid = @truncate(uuid.toInt()),
             .hero_conf_id = conf.id,
             .type = @intFromEnum(pb.FightObjType.FO_Hero),
-            .modules = modules,
+            .modules = hero_modules,
         });
+
+        i += 1;
     }
 
-    try txn.send(.CSProtoHeroAttrInfoSync, .{ .heros = heros });
+    try txn.send(.CSProtoHeroAttrInfoSync, .{ .heros = heroes });
 }
 
 const PlayerStore = logic.PlayerStore;
@@ -584,4 +565,5 @@ const tables = @import("../tables.zig");
 const logic = @import("../logic.zig");
 const store = @import("../store.zig");
 const proto = @import("proto");
+
 const std = @import("std");

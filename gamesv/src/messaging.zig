@@ -212,11 +212,12 @@ pub fn dispatch(
 }
 
 const namespaces: []const type = &.{
-    @import("messaging/heart.zig"),
-    @import("messaging/enter_game.zig"),
-    @import("messaging/world.zig"),
     @import("messaging/achievement.zig"),
+    @import("messaging/enter_game.zig"),
     @import("messaging/group.zig"),
+    @import("messaging/heart.zig"),
+    @import("messaging/soul_essence.zig"),
+    @import("messaging/world.zig"),
 };
 
 const Io = std.Io;
@@ -228,4 +229,5 @@ const channel = @import("channel.zig");
 const Assets = @import("Assets.zig");
 const logic = @import("logic.zig");
 const proto = @import("proto");
+
 const std = @import("std");

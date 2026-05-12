@@ -11,6 +11,8 @@ pub const Item = struct {
     exp: u32,
     rank: Rank,
     system_skill_levels: [SystemSkillLevel.count]SystemSkillLevel,
+    soul_essence_id: u32,
+
     hp: logic.big_world.Hp,
     sp: logic.big_world.Sp,
 
@@ -20,6 +22,8 @@ pub const Item = struct {
             .exp = 0,
             .rank = .min,
             .system_skill_levels = @splat(.min),
+            .soul_essence_id = 0,
+
             .hp = @enumFromInt(logic.big_world.getHeroBaseAttrValue(.maxhp, @intFromEnum(id), 1, 1)),
             .sp = .full,
         };

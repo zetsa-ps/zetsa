@@ -129,7 +129,12 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
         },
         .sbag_infos = .{ .items = .empty },
         .attr_infos = .{},
-        .soulessence_infos = .{},
+        .soulessence_infos = .{
+            .soulessences = try .initCapacity(
+                txn.any.arena,
+                player_store.soul_essence.item_map.entries.len,
+            ),
+        },
         .group_mgrs = .empty,
         .guide_infos = .{ .infos = .empty },
     };
@@ -166,7 +171,7 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
             .hero_rank = hero.rank.toInt(),
             .system_skill_levels = system_skill_levels,
 
-            .wguid = 0,
+            .wguid = hero.soul_essence_id,
             .hero_star = 0,
             .favorability_exp = 0,
             .favorability_lv = 1,
@@ -177,16 +182,27 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
             .daily_gift_num = 0,
         });
 
-        player_data.heros_info.?.battle_infos.appendAssumeCapacity(.{
-            .hero_id = uuid.toInt(),
-            .hp = hero.hp.toInt(),
-            .sp = hero.sp.toInt(),
-            .alive_state = hero.hp.aliveState().toAliveStateType(),
-            .time = @intCast(txn.any.time.toSeconds()),
-            .rescue_val = 0,
-        });
-
         hero_i += 1;
+    }
+
+    var soul_essence_items = player_store.soul_essence.item_map.iterator();
+
+    while (soul_essence_items.next()) |entry| {
+        const soul_essence_id = entry.key_ptr.*;
+        const soul_essence = entry.value_ptr;
+
+        player_data.soulessence_infos.?.soulessences.appendAssumeCapacity(.{
+            .guid = soul_essence_id,
+            .id = soul_essence_id,
+            .lv = soul_essence.lv,
+            .wear_hero = soul_essence.hero_id,
+            .advance = @intFromEnum(soul_essence.stars),
+            .exp = soul_essence.exp,
+            .lock = true,
+            .rank = @intFromEnum(soul_essence.rank),
+            .nums = null,
+            .zombie = null,
+        });
     }
 
     var group_mgrs_buf: [PlayerStore.Lineup.GroupMap.len]pb.GroupManager = undefined;
