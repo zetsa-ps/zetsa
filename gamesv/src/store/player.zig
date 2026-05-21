@@ -9,6 +9,8 @@ pub fn saveAll(io: Io, player_store: *const PlayerStore) SaveError!void {
         saveWorldAttributes,
         saveFormationTable,
         saveSoulEssenceTable,
+        savePetTable,
+        savePetRouletteTable,
     };
 
     const Result = union(enum) {
@@ -133,11 +135,53 @@ pub fn saveSoulEssenceTable(io: Io, player_store: *const PlayerStore) SaveError!
     );
 }
 
+pub fn savePetTable(io: Io, player_store: *const PlayerStore) SaveError!void {
+    try io.checkCancel();
+
+    const old_cancel_protection = io.swapCancelProtection(.blocked);
+    defer _ = io.swapCancelProtection(old_cancel_protection);
+
+    const id = player_store.id.toInt();
+    var path_buf: [max_path_bytes]u8 = undefined;
+
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/pettab", .{id}) catch unreachable;
+    try store.saveAutoArrayHashMap(
+        PlayerStore.Pet.ID,
+        PlayerStore.Pet.Item,
+        io,
+        path,
+        &player_store.pet.item_map,
+    );
+}
+
+pub fn savePetRouletteTable(io: Io, player_store: *const PlayerStore) SaveError!void {
+    try io.checkCancel();
+
+    const old_cancel_protection = io.swapCancelProtection(.blocked);
+    defer _ = io.swapCancelProtection(old_cancel_protection);
+
+    const id = player_store.id.toInt();
+    var path_buf: [max_path_bytes]u8 = undefined;
+
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/petroulettetab", .{id}) catch unreachable;
+    try store.saveEnumMap(
+        PlayerStore.Pet.RouletteMap.Key,
+        PlayerStore.Pet.RouletteMap.Value,
+        io,
+        path,
+        &player_store.pet.roulette_map,
+    );
+}
+
 pub const LoadError = store.LoadAttrsetError;
 
 // Loads all of the `PlayerStore` modules.
 // `out.player_id` must be valid.
-pub fn loadAll(io: Io, out: *PlayerStore) LoadError!void {
+pub fn loadAll(
+    gpa: Allocator,
+    io: Io,
+    out: *PlayerStore,
+) LoadError!void {
     const loadFns = .{
         loadBasicInfo,
         loadHeroTable,
@@ -145,6 +189,8 @@ pub fn loadAll(io: Io, out: *PlayerStore) LoadError!void {
         loadWorldAttributes,
         loadWorldMapTable,
         loadSoulEssenceTable,
+        loadPetTable,
+        loadPetRoulette,
     };
 
     const Result = union(enum) {
@@ -158,7 +204,7 @@ pub fn loadAll(io: Io, out: *PlayerStore) LoadError!void {
     var outstanding = loadFns.len;
 
     inline for (loadFns) |loadFn|
-        select.async(.load, loadFn, .{ io, out });
+        select.async(.load, loadFn, .{ gpa, io, out });
 
     while (outstanding != 0) : (outstanding -= 1) {
         switch (try select.await()) {
@@ -167,7 +213,13 @@ pub fn loadAll(io: Io, out: *PlayerStore) LoadError!void {
     }
 }
 
-fn loadBasicInfo(io: Io, out: *PlayerStore) LoadError!void {
+fn loadBasicInfo(
+    gpa: Allocator,
+    io: Io,
+    out: *PlayerStore,
+) LoadError!void {
+    _ = gpa;
+
     const id = out.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
@@ -175,7 +227,13 @@ fn loadBasicInfo(io: Io, out: *PlayerStore) LoadError!void {
     try store.loadAttrset(PlayerStore.BasicInfo, io, path, &out.basic_info);
 }
 
-fn loadHeroTable(io: Io, out: *PlayerStore) LoadError!void {
+fn loadHeroTable(
+    gpa: Allocator,
+    io: Io,
+    out: *PlayerStore,
+) LoadError!void {
+    _ = gpa;
+
     const id = out.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
@@ -190,7 +248,13 @@ fn loadHeroTable(io: Io, out: *PlayerStore) LoadError!void {
     );
 }
 
-fn loadLineupTable(io: Io, out: *PlayerStore) LoadError!void {
+fn loadLineupTable(
+    gpa: Allocator,
+    io: Io,
+    out: *PlayerStore,
+) LoadError!void {
+    _ = gpa;
+
     const id = out.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
@@ -205,7 +269,13 @@ fn loadLineupTable(io: Io, out: *PlayerStore) LoadError!void {
     );
 }
 
-fn loadWorldAttributes(io: Io, out: *PlayerStore) LoadError!void {
+fn loadWorldAttributes(
+    gpa: Allocator,
+    io: Io,
+    out: *PlayerStore,
+) LoadError!void {
+    _ = gpa;
+
     const id = out.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
@@ -213,7 +283,13 @@ fn loadWorldAttributes(io: Io, out: *PlayerStore) LoadError!void {
     try store.loadAttrset(PlayerStore.World.Attrs, io, path, &out.world.attrs);
 }
 
-fn loadWorldMapTable(io: Io, out: *PlayerStore) LoadError!void {
+fn loadWorldMapTable(
+    gpa: Allocator,
+    io: Io,
+    out: *PlayerStore,
+) LoadError!void {
+    _ = gpa;
+
     const id = out.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
@@ -227,7 +303,11 @@ fn loadWorldMapTable(io: Io, out: *PlayerStore) LoadError!void {
     );
 }
 
-fn loadSoulEssenceTable(io: Io, out: *PlayerStore) LoadError!void {
+fn loadSoulEssenceTable(
+    gpa: Allocator,
+    io: Io,
+    out: *PlayerStore,
+) LoadError!void {
     const id = out.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
@@ -236,15 +316,58 @@ fn loadSoulEssenceTable(io: Io, out: *PlayerStore) LoadError!void {
     try store.loadAutoArrayHashMap(
         u32,
         PlayerStore.SoulEssence.Item,
+        gpa,
         io,
         path,
         &out.soul_essence.item_map,
     );
 }
 
+fn loadPetTable(
+    gpa: Allocator,
+    io: Io,
+    out: *PlayerStore,
+) LoadError!void {
+    const id = out.id.toInt();
+    var path_buf: [max_path_bytes]u8 = undefined;
+
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/pettab", .{id}) catch unreachable;
+
+    try store.loadAutoArrayHashMap(
+        PlayerStore.Pet.ID,
+        PlayerStore.Pet.Item,
+        gpa,
+        io,
+        path,
+        &out.pet.item_map,
+    );
+}
+
+fn loadPetRoulette(
+    gpa: Allocator,
+    io: Io,
+    out: *PlayerStore,
+) LoadError!void {
+    _ = gpa;
+
+    const id = out.id.toInt();
+    var path_buf: [max_path_bytes]u8 = undefined;
+
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/petroulettetab", .{id}) catch unreachable;
+
+    try store.loadEnumMap(
+        PlayerStore.Pet.RouletteMap.Key,
+        PlayerStore.Pet.RouletteMap.Value,
+        io,
+        path,
+        &out.pet.roulette_map,
+    );
+}
+
 const PlayerStore = logic.PlayerStore;
 const max_path_bytes = Io.Dir.max_path_bytes;
 
+const Allocator = std.mem.Allocator;
 const Io = std.Io;
 
 const logic = @import("../logic.zig");

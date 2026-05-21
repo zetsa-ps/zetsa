@@ -103,7 +103,7 @@ pub const LoadAttrsetError = Io.Cancelable || error{
     MissingAttributes,
     InvalidFormat,
     StreamTooLong,
-};
+} || std.mem.Allocator.Error;
 
 pub fn loadAttrset(comptime T: type, io: Io, path: []const u8, out: *T) LoadAttrsetError!void {
     const file = Dir.openFile(.cwd(), io, path, .{}) catch |err| return switch (err) {
@@ -200,11 +200,21 @@ fn writeTsvField(comptime F: type, writer: *Io.Writer, value: F) Io.Writer.Error
         else
             try writer.print("{d}\t", .{@intFromEnum(value)}),
         .array => |array| for (0..array.len) |i| try writeTsvField(array.child, writer, value[i]),
-        .@"struct" => {
+        .@"struct" => |s| {
             if (@hasDecl(F, "max_length") and
                 F == common.mem.LimitedString(F.max_length))
             {
                 try writer.print("{s}\t", .{value.view()});
+                return;
+            }
+
+            if (@hasDecl(F, "toInt")) {
+                try writer.print("{d}\t", .{value.toInt()});
+                return;
+            }
+
+            if (s.backing_integer) |backing_integer| {
+                try writer.print("{d}\t", .{@as(backing_integer, @bitCast(value))});
                 return;
             }
 
@@ -214,7 +224,7 @@ fn writeTsvField(comptime F: type, writer: *Io.Writer, value: F) Io.Writer.Error
     }
 }
 
-const LoadTableError = error{ InputOutput, InvalidFormat, NotFound } || Io.Cancelable;
+const LoadTableError = error{ InputOutput, InvalidFormat, NotFound } || Io.Cancelable || std.mem.Allocator.Error;
 
 pub fn loadEnumMap(
     comptime K: type,
@@ -261,6 +271,7 @@ pub fn loadEnumMap(
 pub fn loadAutoArrayHashMap(
     comptime K: type,
     comptime V: type,
+    gpa: std.mem.Allocator,
     io: Io,
     path: []const u8,
     out: *std.array_hash_map.Auto(K, V),
@@ -296,7 +307,7 @@ pub fn loadAutoArrayHashMap(
             @field(value, field.name) = try parseTsvField(field.type, &row);
         }
 
-        out.putAssumeCapacity(key, value);
+        try out.put(gpa, key, value);
     }
 }
 
@@ -321,11 +332,35 @@ fn parseTsvField(comptime F: type, row: *std.mem.SplitIterator(u8, .scalar)) Loa
 
             return result;
         },
-        .@"struct" => {
+        .@"struct" => |s| {
             if (@hasDecl(F, "max_length") and
                 F == common.mem.LimitedString(F.max_length))
             {
                 return F.init(row.next() orelse return error.InvalidFormat) catch error.InvalidFormat;
+            }
+
+            if (@hasDecl(F, "fromInt")) {
+                const fn_info = @typeInfo(@TypeOf(@field(F, "fromInt"))).@"fn";
+
+                if (fn_info.params.len == 1) {
+                    if (fn_info.params[0].type) |int_type| {
+                        return F.fromInt(
+                            std.fmt.parseInt(
+                                int_type,
+                                row.next() orelse return error.InvalidFormat,
+                                10,
+                            ) catch return error.InvalidFormat,
+                        );
+                    }
+                }
+            }
+
+            if (s.backing_integer) |backing_integer| {
+                return @bitCast(std.fmt.parseInt(
+                    backing_integer,
+                    row.next() orelse return error.InvalidFormat,
+                    10,
+                ) catch return error.InvalidFormat);
             }
 
             @compileError("Unsupported field type: " ++ @typeName(F));

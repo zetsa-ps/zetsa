@@ -322,6 +322,70 @@ pub fn worldQuitHome(txn: Transaction(.CSProtoWorldQuitHome)) !void {
     try txn.respond(.{});
 }
 
+pub fn worldMapPlayerStatus(txn: Transaction(.CSProtoWorldMapPlayerStatus)) !void {
+    const log = std.log.scoped(.CSProtoWorldMapPlayerStatus);
+
+    const status = std.enums.fromInt(
+        pb.WorldMapPlayerStatusType,
+        txn.request.status orelse return,
+    ) orelse return;
+
+    log.debug("status: {}, arg: {?}", .{
+        status,
+        txn.request.arg,
+    });
+
+    try txn.respond(.{});
+
+    switch (status) {
+        .WMPST_NORMAL => {
+            if (txn.any.player_store.world.mount > 0) {
+                try txn.any.send(.CSProtoRideMountInfo, .{
+                    .ride_id = 0,
+                });
+
+                txn.any.player_store.world.mount = 0;
+                txn.any.player_store.world.mount_status = 0;
+            }
+        },
+        .WMPST_MOUNT => {
+            try txn.any.send(.CSProtoRideMountInfo, pb.PlayerMountInfo{
+                .ride_id = txn.request.arg,
+            });
+
+            txn.any.player_store.world.mount = txn.request.arg orelse 0;
+        },
+        else => {},
+    }
+
+    try sendWorldMapSync(txn.any, null);
+}
+
+pub fn worldMapPlayerMountStatus(txn: Transaction(.CSProtoWorldMapPlayerMountStatus)) !void {
+    const log = std.log.scoped(.CSProtoWorldMapPlayerStatus);
+
+    const status = std.enums.fromInt(
+        pb.WorldMapPlayerMountStatusType,
+        txn.request.u32 orelse return,
+    ) orelse return;
+
+    log.debug("mount status: {}", .{status});
+
+    try txn.respond(.{});
+
+    txn.any.player_store.world.mount_status = @intCast(@intFromEnum(status));
+
+    try sendWorldMapSync(txn.any, null);
+}
+
+// TODO
+pub fn worldMapPlayerPlayerAction(txn: Transaction(.CSProtoWorldMapPlayerPlayerAction)) !void {
+    const log = std.log.scoped(.CSProtoWorldMapPlayerPlayerAction);
+    log.debug("action: {?}", .{txn.request.action});
+
+    try txn.respond(.{});
+}
+
 fn sendWorldMapSync(txn: *AnyTransaction, ctd: ?u32) !void {
     const player_store = txn.player_store;
     var map_points: std.ArrayList(u32) = .empty;
@@ -383,17 +447,22 @@ fn sendWorldMapSync(txn: *AnyTransaction, ctd: ?u32) !void {
 
     var player: pb.WorldMapPlayer = .{
         .player_id = player_store.id.toInt(),
-        .status = @intFromEnum(pb.WorldMapPlayerStatusType.WMPST_NORMAL),
-        .reason = 0,
-        .name = basic_info.name.view(),
-        .host = true,
         .move = .initBuffer(&player_move_buf),
-        .group = group,
+        .status = if (player_store.world.mount != 0)
+            @intFromEnum(pb.WorldMapPlayerStatusType.WMPST_MOUNT)
+        else
+            @intFromEnum(pb.WorldMapPlayerStatusType.WMPST_NORMAL),
+        .reason = 0,
+        .host = true,
+        .name = basic_info.name.view(),
         .face = .{
             .sex = basic_info.sex.toPlayerSexType(),
             .height = 90,
             .complexion = 0,
         },
+        .group = group,
+        .mount = player_store.world.mount,
+        .mount_status = player_store.world.mount_status,
         .apparel_info = .{ .apparel_ids = .empty },
     };
 

@@ -38,6 +38,18 @@ pub const Uuid = packed struct(u64) {
         };
     }
 
+    pub fn pet(player_id: PlayerStore.ID, config_id: u24) Uuid {
+        return .{
+            .player_id = player_id.toInt(),
+            .config_id = config_id,
+            .object_type = .fromFightObjType(.FO_Pet),
+        };
+    }
+
+    pub inline fn fromInt(value: u64) Uuid {
+        return @bitCast(value);
+    }
+
     pub inline fn toInt(uuid: Uuid) u64 {
         return @bitCast(uuid);
     }

@@ -2,15 +2,9 @@ pub const ItemMap = std.array_hash_map.Auto(u32, Item);
 
 item_map: ItemMap,
 
-pub fn init(gpa: std.mem.Allocator) !SoulEssenceData {
-    var item_map: ItemMap = .empty;
-
-    try item_map.ensureTotalCapacity(gpa, tables.game.bag_limit_soulessence);
-
-    return .{
-        .item_map = item_map,
-    };
-}
+pub const init: SoulEssenceData = .{
+    .item_map = .empty,
+};
 
 pub fn deinit(self: *SoulEssenceData, gpa: std.mem.Allocator) void {
     self.item_map.deinit(gpa);

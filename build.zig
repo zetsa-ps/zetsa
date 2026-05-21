@@ -74,9 +74,20 @@ pub fn build(b: *Build) void {
 const gamesv_assets: []const ComptimeAsset = &.{
     .asset("config", "gamesv/config.zon"),
     .asset("msg_gen_code", "assets/protocol/msg_gen_code.zon"),
+    .asset("tables/enemy", "assets/tables/enemy.zon"),
+    .asset("tables/enemy_pack", "assets/tables/enemy_pack.zon"),
+    .asset("tables/explore_level", "assets/tables/explore_level.zon"),
     .asset("tables/game", "assets/tables/game.zon"),
     .asset("tables/hero", "assets/tables/hero.zon"),
     .asset("tables/hero_level", "assets/tables/hero_level.zon"),
+    .asset("tables/mount", "assets/tables/mount.zon"),
+    .asset("tables/mount_saddle", "assets/tables/mount_saddle.zon"),
+    .asset("tables/pet", "assets/tables/pet.zon"),
+    .asset("tables/pet_grade", "assets/tables/pet_grade.zon"),
+    .asset("tables/pet_learningenum", "assets/tables/pet_learningenum.zon"),
+    .asset("tables/pet_learningtalent", "assets/tables/pet_learningtalent.zon"),
+    .asset("tables/pet_level", "assets/tables/pet_level.zon"),
+    .asset("tables/pet_rank", "assets/tables/pet_rank.zon"),
     .asset("tables/player_level", "assets/tables/player_level.zon"),
     .asset("tables/skill_level", "assets/tables/skill_level.zon"),
     .asset("tables/soulessence", "assets/tables/soulessence.zon"),
@@ -88,10 +99,8 @@ const gamesv_assets: []const ComptimeAsset = &.{
     .asset("tables/world_area", "assets/tables/world_area.zon"),
     .asset("tables/world_borthpos", "assets/tables/world_borthpos.zon"),
     .asset("tables/world_city", "assets/tables/world_city.zon"),
-    .asset("tables/world_enemy_group", "assets/tables/world_enemy_group.zon"),
-    .asset("tables/enemy", "assets/tables/enemy.zon"),
-    .asset("tables/enemy_pack", "assets/tables/enemy_pack.zon"),
     .asset("tables/world_difficulty_obj_level", "assets/tables/world_difficulty_obj_level.zon"),
+    .asset("tables/world_enemy_group", "assets/tables/world_enemy_group.zon"),
 };
 
 const cdnsv_assets: []const ComptimeAsset = &.{

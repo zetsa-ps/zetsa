@@ -11,7 +11,9 @@ pub const Item = struct {
     exp: u32,
     rank: Rank,
     system_skill_levels: [SystemSkillLevel.count]SystemSkillLevel,
+
     soul_essence_id: u32,
+    pet_id: u64,
 
     hp: logic.big_world.Hp,
     sp: logic.big_world.Sp,
@@ -26,6 +28,7 @@ pub const Item = struct {
 
             .hp = @enumFromInt(logic.big_world.getHeroBaseAttrValue(.maxhp, @intFromEnum(id), 1, 1)),
             .sp = .full,
+            .pet_id = 0,
         };
     }
 };
@@ -78,6 +81,21 @@ pub const Type = enum {
             => .main,
             else => .normal,
         };
+    }
+};
+
+pub const Ref = enum(u64) {
+    none = 0,
+    _,
+
+    pub inline fn fromUuid(uuid: logic.Uuid) Ref {
+        return @enumFromInt(uuid.toInt());
+    }
+
+    pub inline fn toUuid(self: Ref) ?logic.Uuid {
+        const raw = @intFromEnum(self);
+        if (raw == 0) return null;
+        return logic.Uuid.fromInt(raw);
     }
 };
 

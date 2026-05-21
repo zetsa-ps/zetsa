@@ -26,6 +26,11 @@ pub fn LimitedString(comptime limit: usize) type {
             return std.mem.span(@as([*:0]const u8, @ptrCast(&string.bytes)));
         }
 
+        pub fn viewOrNull(string: *const String) ?[:0]const u8 {
+            const v = string.view();
+            return if (v.len > 0) v else null;
+        }
+
         pub fn set(string: *String, value: []const u8) LimitedStringError!void {
             if (value.len > max_length) return error.TooLongString;
 

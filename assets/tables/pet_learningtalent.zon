@@ -1,0 +1,542 @@
+.{
+  .{
+    .id = 1008,
+    .level = "SS",
+    .type = 8,
+    .enum_id = 1,
+    .range = .{
+      145,
+      155,
+    },
+  },
+  .{
+    .id = 1009,
+    .level = "SSS",
+    .type = 9,
+    .enum_id = 1,
+    .range = .{
+      155,
+      170,
+    },
+  },
+  .{
+    .id = 6009,
+    .level = "SSS",
+    .type = 9,
+    .enum_id = 6,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 4009,
+    .level = "SSS",
+    .type = 9,
+    .enum_id = 4,
+    .range = .{
+      155,
+      170,
+    },
+  },
+  .{
+    .id = 3009,
+    .level = "SSS",
+    .type = 9,
+    .enum_id = 3,
+    .range = .{
+      155,
+      170,
+    },
+  },
+  .{
+    .id = 5009,
+    .level = "SSS",
+    .type = 9,
+    .enum_id = 5,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 6001,
+    .level = "F",
+    .type = 1,
+    .enum_id = 6,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 6002,
+    .level = "E",
+    .type = 2,
+    .enum_id = 6,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 6003,
+    .level = "D",
+    .type = 3,
+    .enum_id = 6,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 6004,
+    .level = "C",
+    .type = 4,
+    .enum_id = 6,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 6005,
+    .level = "B",
+    .type = 5,
+    .enum_id = 6,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 6006,
+    .level = "A",
+    .type = 6,
+    .enum_id = 6,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 6007,
+    .level = "S",
+    .type = 7,
+    .enum_id = 6,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 6008,
+    .level = "SS",
+    .type = 8,
+    .enum_id = 6,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 5001,
+    .level = "F",
+    .type = 1,
+    .enum_id = 5,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 5002,
+    .level = "E",
+    .type = 2,
+    .enum_id = 5,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 5003,
+    .level = "D",
+    .type = 3,
+    .enum_id = 5,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 5004,
+    .level = "C",
+    .type = 4,
+    .enum_id = 5,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 5005,
+    .level = "B",
+    .type = 5,
+    .enum_id = 5,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 5006,
+    .level = "A",
+    .type = 6,
+    .enum_id = 5,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 5007,
+    .level = "S",
+    .type = 7,
+    .enum_id = 5,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 5008,
+    .level = "SS",
+    .type = 8,
+    .enum_id = 5,
+    .range = .{
+      0,
+      0,
+    },
+  },
+  .{
+    .id = 4001,
+    .level = "F",
+    .type = 1,
+    .enum_id = 4,
+    .range = .{
+      75,
+      85,
+    },
+  },
+  .{
+    .id = 4002,
+    .level = "E",
+    .type = 2,
+    .enum_id = 4,
+    .range = .{
+      85,
+      95,
+    },
+  },
+  .{
+    .id = 4003,
+    .level = "D",
+    .type = 3,
+    .enum_id = 4,
+    .range = .{
+      95,
+      105,
+    },
+  },
+  .{
+    .id = 4004,
+    .level = "C",
+    .type = 4,
+    .enum_id = 4,
+    .range = .{
+      105,
+      115,
+    },
+  },
+  .{
+    .id = 4005,
+    .level = "B",
+    .type = 5,
+    .enum_id = 4,
+    .range = .{
+      115,
+      125,
+    },
+  },
+  .{
+    .id = 4006,
+    .level = "A",
+    .type = 6,
+    .enum_id = 4,
+    .range = .{
+      125,
+      135,
+    },
+  },
+  .{
+    .id = 4007,
+    .level = "S",
+    .type = 7,
+    .enum_id = 4,
+    .range = .{
+      135,
+      145,
+    },
+  },
+  .{
+    .id = 4008,
+    .level = "SS",
+    .type = 8,
+    .enum_id = 4,
+    .range = .{
+      145,
+      155,
+    },
+  },
+  .{
+    .id = 3001,
+    .level = "F",
+    .type = 1,
+    .enum_id = 3,
+    .range = .{
+      75,
+      85,
+    },
+  },
+  .{
+    .id = 3002,
+    .level = "E",
+    .type = 2,
+    .enum_id = 3,
+    .range = .{
+      85,
+      95,
+    },
+  },
+  .{
+    .id = 3003,
+    .level = "D",
+    .type = 3,
+    .enum_id = 3,
+    .range = .{
+      95,
+      105,
+    },
+  },
+  .{
+    .id = 3004,
+    .level = "C",
+    .type = 4,
+    .enum_id = 3,
+    .range = .{
+      105,
+      115,
+    },
+  },
+  .{
+    .id = 3005,
+    .level = "B",
+    .type = 5,
+    .enum_id = 3,
+    .range = .{
+      115,
+      125,
+    },
+  },
+  .{
+    .id = 3006,
+    .level = "A",
+    .type = 6,
+    .enum_id = 3,
+    .range = .{
+      125,
+      135,
+    },
+  },
+  .{
+    .id = 3007,
+    .level = "S",
+    .type = 7,
+    .enum_id = 3,
+    .range = .{
+      135,
+      145,
+    },
+  },
+  .{
+    .id = 3008,
+    .level = "SS",
+    .type = 8,
+    .enum_id = 3,
+    .range = .{
+      145,
+      155,
+    },
+  },
+  .{
+    .id = 2001,
+    .level = "F",
+    .type = 1,
+    .enum_id = 2,
+    .range = .{
+      75,
+      85,
+    },
+  },
+  .{
+    .id = 2002,
+    .level = "E",
+    .type = 2,
+    .enum_id = 2,
+    .range = .{
+      85,
+      95,
+    },
+  },
+  .{
+    .id = 2003,
+    .level = "D",
+    .type = 3,
+    .enum_id = 2,
+    .range = .{
+      95,
+      105,
+    },
+  },
+  .{
+    .id = 2004,
+    .level = "C",
+    .type = 4,
+    .enum_id = 2,
+    .range = .{
+      105,
+      115,
+    },
+  },
+  .{
+    .id = 2005,
+    .level = "B",
+    .type = 5,
+    .enum_id = 2,
+    .range = .{
+      115,
+      125,
+    },
+  },
+  .{
+    .id = 2006,
+    .level = "A",
+    .type = 6,
+    .enum_id = 2,
+    .range = .{
+      125,
+      135,
+    },
+  },
+  .{
+    .id = 2007,
+    .level = "S",
+    .type = 7,
+    .enum_id = 2,
+    .range = .{
+      135,
+      145,
+    },
+  },
+  .{
+    .id = 2008,
+    .level = "SS",
+    .type = 8,
+    .enum_id = 2,
+    .range = .{
+      145,
+      155,
+    },
+  },
+  .{
+    .id = 1001,
+    .level = "F",
+    .type = 1,
+    .enum_id = 1,
+    .range = .{
+      75,
+      85,
+    },
+  },
+  .{
+    .id = 1002,
+    .level = "E",
+    .type = 2,
+    .enum_id = 1,
+    .range = .{
+      85,
+      95,
+    },
+  },
+  .{
+    .id = 1003,
+    .level = "D",
+    .type = 3,
+    .enum_id = 1,
+    .range = .{
+      95,
+      105,
+    },
+  },
+  .{
+    .id = 1004,
+    .level = "C",
+    .type = 4,
+    .enum_id = 1,
+    .range = .{
+      105,
+      115,
+    },
+  },
+  .{
+    .id = 1005,
+    .level = "B",
+    .type = 5,
+    .enum_id = 1,
+    .range = .{
+      115,
+      125,
+    },
+  },
+  .{
+    .id = 1006,
+    .level = "A",
+    .type = 6,
+    .enum_id = 1,
+    .range = .{
+      125,
+      135,
+    },
+  },
+  .{
+    .id = 1007,
+    .level = "S",
+    .type = 7,
+    .enum_id = 1,
+    .range = .{
+      135,
+      145,
+    },
+  },
+  .{
+    .id = 2009,
+    .level = "SSS",
+    .type = 9,
+    .enum_id = 2,
+    .range = .{
+      155,
+      170,
+    },
+  },
+}

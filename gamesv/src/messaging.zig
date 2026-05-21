@@ -216,6 +216,7 @@ const namespaces: []const type = &.{
     @import("messaging/enter_game.zig"),
     @import("messaging/group.zig"),
     @import("messaging/heart.zig"),
+    @import("messaging/pet.zig"),
     @import("messaging/soul_essence.zig"),
     @import("messaging/world.zig"),
 };

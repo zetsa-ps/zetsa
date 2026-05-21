@@ -1,0 +1,458 @@
+.{
+  .{
+    .id = 500216,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148411360936192,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148411360936704,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148411360936960,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500216.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500158,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148162252833024,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148162252833536,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148162252833792,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500158.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500035,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147633971855616,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147633971856128,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147633971856384,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500035.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500098,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147904554795264,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147904554795776,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147904554796032,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500098.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500068,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147775705776384,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147775705776896,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147775705777152,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500068.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500039,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147651151724800,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147651151725312,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147651151725568,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500039.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500072,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147792885645568,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147792885646080,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147792885646336,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500072.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500042,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147664036626688,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147664036627200,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147664036627456,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500042.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500260,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148600339497216,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148600339497728,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148600339497984,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500260.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500324,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148875217404160,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148875217404672,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148875217404928,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500324.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500263,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148613224399104,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148613224399616,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148613224399872,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500263.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500296,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148754958319872,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148754958320384,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148754958320640,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500296.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500399,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2149197339951360,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2149197339951872,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2149197339952128,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500399.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500082,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147835835318528,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147835835319040,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147835835319296,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500082.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500468,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2149493692694784,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2149493692695296,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2149493692695552,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500468.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500022,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147578137280768,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147578137281280,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147578137281536,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500022.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500185,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148278216950016,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148278216950528,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148278216950784,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500185.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500065,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147762820874496,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147762820875008,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147762820875264,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500065.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500206,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148368411263232,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148368411263744,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148368411264000,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500206.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500026,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147595317149952,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147595317150464,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147595317150720,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500026.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500058,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147732756103424,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147732756103936,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147732756104192,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500058.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500096,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147895964860672,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147895964861184,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147895964861440,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500096.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500246,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148540209955072,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148540209955584,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2148540209955840,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500246.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+  .{
+    .id = 500120,
+    .name = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147999044075776,
+    },
+    .desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147999044076288,
+    },
+    .special_desc = .{
+      .group = "lang_mount_saddle",
+      .lang_key = 2147999044076544,
+    },
+    .icon = "UI/Atlas/Item/tex_icon_item_saddle500120.png",
+    .rarity = 4,
+    .default_saddle = "Character/Weapon/pre_weapon_saddle_4002.prefab",
+    .default_id = 0,
+  },
+}

@@ -133,14 +133,15 @@ pub fn moveSoulEssence(txn: Transaction(.CSProtoMoveSoulEssence)) !void {
     for (changed_heroes.items) |changed_hero| {
         const hero_uuid: logic.Uuid = @bitCast(changed_hero.hero_guid);
 
-        heroes_info.appendAssumeCapacity(.{
-            .guid = changed_hero.hero_guid,
-            .conf_id = hero_uuid.config_id,
-            .wguid = player_store.hero.item_map.get(
-                @enumFromInt(hero_uuid.config_id),
-            ).?.soul_essence_id,
-            .type = PlayerStore.Hero.Type.byHeroId(@enumFromInt(hero_uuid.config_id)).toHeroType(),
-        });
+        heroes_info.appendAssumeCapacity(
+            try encoding.packHeroItemInfo(
+                txn.any.arena,
+                hero_uuid,
+                player_store.hero.item_map.get(
+                    @enumFromInt(hero_uuid.config_id),
+                ).?,
+            ),
+        );
     }
 
     try txn.any.send(.CSProtoSyncPlayerData, pb.PlayerData{

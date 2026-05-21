@@ -16,7 +16,11 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
 
     if (store.Account.fetch(txn.any.io, &open_id)) |account| {
         txn.any.player_store.id = @enumFromInt(account.player_id);
-        store.player.loadAll(txn.any.io, txn.any.player_store) catch |err| {
+        store.player.loadAll(
+            txn.any.gpa,
+            txn.any.io,
+            txn.any.player_store,
+        ) catch |err| {
             const msg = try std.fmt.allocPrint(
                 txn.any.arena,
                 "failed to load store of player with id {d}: {t}",
@@ -139,10 +143,7 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
         .guide_infos = .{ .infos = .empty },
     };
 
-    var system_skill_levels_buffer: [PlayerStore.Hero.ItemMap.len * PlayerStore.Hero.SystemSkillLevel.count]u32 = undefined;
-
     var hero_items = player_store.hero.item_map.iterator();
-    var hero_i: usize = 0;
 
     while (hero_items.next()) |entry| {
         const hero_id = entry.key;
@@ -155,34 +156,13 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
 
         const uuid: logic.Uuid = .hero(player_store.id, hero_id);
 
-        var system_skill_levels: ArrayList(u32) = .initBuffer(
-            system_skill_levels_buffer[hero_i * PlayerStore.Hero.SystemSkillLevel.count ..][0..PlayerStore.Hero.SystemSkillLevel.count],
+        player_data.heros_info.?.heros.appendAssumeCapacity(
+            try encoding.packHeroItemInfo(
+                txn.any.arena,
+                uuid,
+                hero.*,
+            ),
         );
-
-        for (hero.system_skill_levels) |level|
-            system_skill_levels.appendAssumeCapacity(@intFromEnum(level));
-
-        player_data.heros_info.?.heros.appendAssumeCapacity(.{
-            .guid = uuid.toInt(),
-            .type = PlayerStore.Hero.Type.byHeroId(hero_id).toHeroType(),
-            .conf_id = @intFromEnum(hero_id),
-            .hero_lv = hero.lv.toInt(),
-            .hero_exp = hero.exp,
-            .hero_rank = hero.rank.toInt(),
-            .system_skill_levels = system_skill_levels,
-
-            .wguid = hero.soul_essence_id,
-            .hero_star = 0,
-            .favorability_exp = 0,
-            .favorability_lv = 1,
-            .trail = false,
-            .hero_rank_reward = 0,
-            .fight_favorability_exp = 0,
-            .dorm_id = 0,
-            .daily_gift_num = 0,
-        });
-
-        hero_i += 1;
     }
 
     var soul_essence_items = player_store.soul_essence.item_map.iterator();
@@ -219,7 +199,7 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
 
     try txn.respond(.{
         .data = player_data,
-        .reconnect = false,
+        .reconnect = txn.request.reconnect,
         .time_zone = 3,
         .time = @intCast(txn.any.time.toSeconds()),
         .time_msec = @intCast(@mod(txn.any.time.toMilliseconds(), 1000)),
@@ -243,6 +223,59 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
     });
 
     try txn.any.send(.CSProtoGMSystemCloseSync, .{ .syslist = syslist });
+
+    // Pets
+
+    var pets: std.ArrayList(pb.PetbaseInfo) = try .initCapacity(txn.any.arena, player_store.pet.item_map.entries.len);
+
+    var pet_items = player_store.pet.item_map.iterator();
+
+    while (pet_items.next()) |pet_entry| pets.appendAssumeCapacity(
+        try encoding.packPetInfo(
+            txn.any.arena,
+            pet_entry.key_ptr.*,
+            pet_entry.value_ptr.*,
+            player_store.pet.getPetRouletteIndex(pet_entry.key_ptr.*),
+        ),
+    );
+
+    try txn.any.send(.CSProtoPetInfoSync, pb.SCPetInfoSync{
+        .pet_infos = .{
+            .pets = pets,
+        },
+    });
+
+    // Mounts
+
+    var saddles_buf: [tables.mount_saddle.list.len]u32 = undefined;
+    var saddles: std.ArrayList(u32) = .initBuffer(&saddles_buf);
+
+    for (tables.mount_saddle.list) |saddle| {
+        saddles.appendAssumeCapacity(saddle.id);
+    }
+
+    try txn.any.send(.CSProtoRideMountInfo, pb.PlayerMountInfo{
+        .mount_saddlerys = saddles,
+    });
+
+    // Exploration level
+
+    var exploration_info_list_buf: [tables.explore_level.list.len]pb.ExplorationMapInfo = undefined;
+    var exploration_info_list: std.ArrayList(pb.ExplorationMapInfo) = .initBuffer(&exploration_info_list_buf);
+
+    for (tables.explore_level.grouped) |g| {
+        if (g.max()) |max| {
+            exploration_info_list.appendAssumeCapacity(.{
+                .map_id = max.regionid,
+                .lv = max.lv,
+                .exp = 0,
+            });
+        }
+    }
+
+    try txn.any.send(.CSProtoWorldExplorationSync, pb.SCExplorationSync{
+        .map_info = exploration_info_list,
+    });
 }
 
 fn kickPlayer(txn: *messaging.AnyTransaction, reason: []const u8) !void {

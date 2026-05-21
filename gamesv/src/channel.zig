@@ -8,10 +8,7 @@ pub fn run(io: Io, assets: *Assets, stream: net.Stream, gpa: Allocator) Io.Cance
     log.info("new connection from {f}", .{stream.socket.address});
     defer log.info("client from {f} disconnected", .{stream.socket.address});
 
-    var player_store = logic.PlayerStore.init(gpa) catch |err| {
-        log.err("error creating player store: {t}", .{err});
-        return;
-    };
+    var player_store: logic.PlayerStore = .init;
     defer player_store.deinit(gpa);
 
     var services: logic.Services = .init;

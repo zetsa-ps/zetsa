@@ -2,17 +2,25 @@ pub const Maps = std.EnumMap(Map.Kind, Map);
 
 maps: Maps,
 attrs: Attrs,
+mount: u64,
+mount_status: u8,
 
 pub const init: World = .{
-    .maps = .init(.{ .exploration = .{
-        .id = default_map_id,
-        .position_x = logic.math.floatToInt(default_pos[0]),
-        .position_y = logic.math.floatToInt(default_pos[1]),
-        .position_z = logic.math.floatToInt(default_pos[2]),
-        .angle = @trunc(default_pos[4]),
-        .area_id = default_area_id,
-    } }),
+    .maps = .init(
+        .{
+            .exploration = .{
+                .id = default_map_id,
+                .position_x = logic.math.floatToInt(default_pos[0]),
+                .position_y = logic.math.floatToInt(default_pos[1]),
+                .position_z = logic.math.floatToInt(default_pos[2]),
+                .angle = @trunc(default_pos[4]),
+                .area_id = default_area_id,
+            },
+        },
+    ),
     .attrs = .{ .active_kind = .exploration },
+    .mount = 0,
+    .mount_status = 0,
 };
 
 pub const Map = struct {
