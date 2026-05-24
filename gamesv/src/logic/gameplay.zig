@@ -1,10 +1,17 @@
-pub fn onFirstEntrance(player_store: *PlayerStore) void {
+pub fn onFirstEntrance(
+    player_store: *PlayerStore,
+    gpa: std.mem.Allocator,
+) std.mem.Allocator.Error!void {
     for (tables.hero.list) |hero| if (hero.is_usable != 0) {
         player_store.hero.unlockById(hero.getId());
     };
 
     for (tables.soulessence.list) |soul_essence| {
-        player_store.soul_essence.item_map.putAssumeCapacity(soul_essence.id, .init);
+        try player_store.soul_essence.item_map.put(
+            gpa,
+            soul_essence.id,
+            .init,
+        );
     }
 
     for (tables.pet.list, 0..) |pet, i| {
@@ -17,7 +24,11 @@ pub fn onFirstEntrance(player_store: *PlayerStore) void {
             .slot = @enumFromInt(@as(std.meta.Tag(PlayerStore.Pet.Box.Slot), @intCast((i % tables.game.pet_box_limit) + 1))),
         };
 
-        player_store.pet.item_map.putAssumeCapacity(@bitCast(@as(u64, @intCast(pet.id))), pet_item);
+        try player_store.pet.item_map.put(
+            gpa,
+            @bitCast(@as(u64, @intCast(pet.id))),
+            pet_item,
+        );
     }
 }
 

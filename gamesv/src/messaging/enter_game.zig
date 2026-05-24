@@ -52,7 +52,10 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
 
             txn.any.player_store.id = @enumFromInt(account.player_id);
 
-            logic.gameplay.onFirstEntrance(txn.any.player_store);
+            try logic.gameplay.onFirstEntrance(
+                txn.any.player_store,
+                txn.any.gpa,
+            );
 
             {
                 const old_cancel_protection = txn.any.io.swapCancelProtection(.blocked);
