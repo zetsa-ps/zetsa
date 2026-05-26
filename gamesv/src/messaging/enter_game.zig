@@ -21,15 +21,21 @@ pub fn enterGame(txn: Transaction(.CSProtoEnterGame)) !void {
             txn.any.io,
             txn.any.player_store,
         ) catch |err| {
-            const msg = try std.fmt.allocPrint(
+            const log_msg = try std.fmt.allocPrint(
                 txn.any.arena,
                 "failed to load store of player with id {d}: {t}",
                 .{ account.player_id, err },
             );
+            const kick_msg = if (err == error.Outdated)
+                "<size=32><b>Error:</b> <color=#c63e39>Outdated store</color></size>\n\n\n" ++
+                    "<size=20>Delete <size=16>(or move)</size> the <b><color=#3266b4>store</color></b> folder in the server directory and try to log in again.\n" ++
+                    "You can also delete only the current user store folder.</size>"
+            else
+                log_msg;
 
-            log.warn("{s}", .{msg});
+            log.warn("{s}", .{log_msg});
 
-            return try kickPlayer(txn.any, msg);
+            return try kickPlayer(txn.any, kick_msg);
         };
     } else |err| switch (err) {
         error.Canceled => |e| return e,

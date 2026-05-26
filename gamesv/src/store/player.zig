@@ -55,7 +55,7 @@ pub fn saveHeroTable(io: Io, player_store: *const PlayerStore) SaveError!void {
     const id = player_store.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
-    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/herotab", .{id}) catch unreachable;
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/herotab.tsv", .{id}) catch unreachable;
     try store.saveEnumMap(
         PlayerStore.Hero.ItemMap.Key,
         PlayerStore.Hero.ItemMap.Value,
@@ -74,7 +74,7 @@ pub fn saveWorldMapTable(io: Io, player_store: *const PlayerStore) SaveError!voi
     const id = player_store.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
-    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/worldmaptab", .{id}) catch unreachable;
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/worldmaptab.tsv", .{id}) catch unreachable;
     try store.saveEnumMap(
         PlayerStore.World.Maps.Key,
         PlayerStore.World.Maps.Value,
@@ -106,7 +106,7 @@ pub fn saveFormationTable(io: Io, player_store: *const PlayerStore) SaveError!vo
     const id = player_store.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
-    const lineup_tab_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/lineuptab", .{id}) catch unreachable;
+    const lineup_tab_path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/lineuptab.tsv", .{id}) catch unreachable;
     try store.saveEnumMap(
         PlayerStore.Lineup.Group.Type,
         PlayerStore.Lineup.Group,
@@ -125,7 +125,7 @@ pub fn saveSoulEssenceTable(io: Io, player_store: *const PlayerStore) SaveError!
     const id = player_store.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
-    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/soulessencetab", .{id}) catch unreachable;
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/soulessencetab.tsv", .{id}) catch unreachable;
     try store.saveAutoArrayHashMap(
         u32,
         PlayerStore.SoulEssence.Item,
@@ -144,7 +144,7 @@ pub fn savePetTable(io: Io, player_store: *const PlayerStore) SaveError!void {
     const id = player_store.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
-    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/pettab", .{id}) catch unreachable;
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/pettab.tsv", .{id}) catch unreachable;
     try store.saveAutoArrayHashMap(
         PlayerStore.Pet.ID,
         PlayerStore.Pet.Item,
@@ -163,7 +163,7 @@ pub fn savePetRouletteTable(io: Io, player_store: *const PlayerStore) SaveError!
     const id = player_store.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
-    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/petroulettetab", .{id}) catch unreachable;
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/petroulettetab.tsv", .{id}) catch unreachable;
     try store.saveEnumMap(
         PlayerStore.Pet.RouletteMap.Key,
         PlayerStore.Pet.RouletteMap.Value,
@@ -237,7 +237,7 @@ fn loadHeroTable(
     const id = out.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
-    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/herotab", .{id}) catch unreachable;
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/herotab.tsv", .{id}) catch unreachable;
 
     try store.loadEnumMap(
         PlayerStore.Hero.ItemMap.Key,
@@ -258,7 +258,7 @@ fn loadLineupTable(
     const id = out.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
-    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/lineuptab", .{id}) catch unreachable;
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/lineuptab.tsv", .{id}) catch unreachable;
 
     try store.loadEnumMap(
         PlayerStore.Lineup.Group.Type,
@@ -293,7 +293,7 @@ fn loadWorldMapTable(
     const id = out.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
-    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/worldmaptab", .{id}) catch unreachable;
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/worldmaptab.tsv", .{id}) catch unreachable;
     try store.loadEnumMap(
         PlayerStore.World.Maps.Key,
         PlayerStore.World.Maps.Value,
@@ -311,7 +311,7 @@ fn loadSoulEssenceTable(
     const id = out.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
-    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/soulessencetab", .{id}) catch unreachable;
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/soulessencetab.tsv", .{id}) catch unreachable;
 
     try store.loadAutoArrayHashMap(
         u32,
@@ -331,7 +331,7 @@ fn loadPetTable(
     const id = out.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
-    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/pettab", .{id}) catch unreachable;
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/pettab.tsv", .{id}) catch unreachable;
 
     try store.loadAutoArrayHashMap(
         PlayerStore.Pet.ID,
@@ -353,7 +353,7 @@ fn loadPetRoulette(
     const id = out.id.toInt();
     var path_buf: [max_path_bytes]u8 = undefined;
 
-    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/petroulettetab", .{id}) catch unreachable;
+    const path = std.fmt.bufPrint(&path_buf, "store/player/by-id/{d}/petroulettetab.tsv", .{id}) catch unreachable;
 
     try store.loadEnumMap(
         PlayerStore.Pet.RouletteMap.Key,
